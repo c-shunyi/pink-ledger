@@ -38,108 +38,106 @@
   </view>
 </template>
 
-<script>
+<script setup>
+import { ref, reactive } from 'vue'
+import { onLoad } from '@dcloudio/uni-app'
 import { login } from '@/utils/api.js'
 import { setToken, setUserInfo, getToken, getUserInfo } from '@/utils/storage.js'
 
-export default {
-  data() {
-    return {
-      form: {
-        username: '',
-        password: ''
-      },
-      loading: false
-    }
-  },
-  onLoad() {
-    // 检查是否已经登录
-    this.checkAutoLogin()
-  },
-  methods: {
-    // 检查自动登录
-    checkAutoLogin() {
-      const token = getToken()
-      const userInfo = getUserInfo()
-      
-      if (token && userInfo) {
-        console.log('检测到已有登录信息，自动跳转到首页')
-        uni.showToast({
-          title: '已自动登录',
-          icon: 'success',
-          duration: 1500
-        })
-        
-        // 跳转到首页
-        setTimeout(() => {
-          uni.switchTab({
-            url: '/pages/index/index'
-          })
-        }, 1500)
-      }
-    },
+// 响应式数据
+const form = reactive({
+  username: '',
+  password: ''
+})
+const loading = ref(false)
+
+// 检查自动登录
+const checkAutoLogin = () => {
+  const token = getToken()
+  const userInfo = getUserInfo()
+  
+  if (token && userInfo) {
+    console.log('检测到已有登录信息，自动跳转到首页')
+    uni.showToast({
+      title: '已自动登录',
+      icon: 'success',
+      duration: 1500
+    })
     
-    // 登录
-    async handleLogin() {
-      // 表单验证
-      if (!this.form.username) {
-        uni.showToast({
-          title: '请输入用户名',
-          icon: 'none'
-        })
-        return
-      }
-      
-      if (!this.form.password) {
-        uni.showToast({
-          title: '请输入密码',
-          icon: 'none'
-        })
-        return
-      }
-      
-      if (this.form.password.length < 6) {
-        uni.showToast({
-          title: '密码长度不能少于6位',
-          icon: 'none'
-        })
-        return
-      }
-      
-      try {
-        this.loading = true
-        const res = await login(this.form)
-        
-        // 存储 token 和用户信息
-        setToken(res.data.token)
-        setUserInfo(res.data.user)
-        
-        uni.showToast({
-          title: '登录成功',
-          icon: 'success'
-        })
-        
-        // 跳转到首页
-        setTimeout(() => {
-          uni.switchTab({
-            url: '/pages/index/index'
-          })
-        }, 1500)
-      } catch (err) {
-        console.error('登录失败:', err)
-      } finally {
-        this.loading = false
-      }
-    },
-    
-    // 跳转到注册页
-    goToRegister() {
-      uni.navigateTo({
-        url: '/pages/register/register'
+    // 跳转到首页
+    setTimeout(() => {
+      uni.switchTab({
+        url: '/pages/index/index'
       })
-    }
+    }, 1500)
   }
 }
+
+// 登录
+const handleLogin = async () => {
+  // 表单验证
+  if (!form.username) {
+    uni.showToast({
+      title: '请输入用户名',
+      icon: 'none'
+    })
+    return
+  }
+  
+  if (!form.password) {
+    uni.showToast({
+      title: '请输入密码',
+      icon: 'none'
+    })
+    return
+  }
+  
+  if (form.password.length < 6) {
+    uni.showToast({
+      title: '密码长度不能少于6位',
+      icon: 'none'
+    })
+    return
+  }
+  
+  try {
+    loading.value = true
+    const res = await login(form)
+    
+    // 存储 token 和用户信息
+    setToken(res.data.token)
+    setUserInfo(res.data.user)
+    
+    uni.showToast({
+      title: '登录成功',
+      icon: 'success'
+    })
+    
+    // 跳转到首页
+    setTimeout(() => {
+      uni.switchTab({
+        url: '/pages/index/index'
+      })
+    }, 1500)
+  } catch (err) {
+    console.error('登录失败:', err)
+  } finally {
+    loading.value = false
+  }
+}
+
+// 跳转到注册页
+const goToRegister = () => {
+  uni.navigateTo({
+    url: '/pages/register/register'
+  })
+}
+
+// 生命周期钩子
+onLoad(() => {
+  // 检查是否已经登录
+  checkAutoLogin()
+})
 </script>
 
 <style scoped>

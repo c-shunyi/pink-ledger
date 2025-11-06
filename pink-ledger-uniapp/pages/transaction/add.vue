@@ -102,140 +102,140 @@
   </view>
 </template>
 
-<script>
-import { getCategories, createTransaction } from '@/utils/api.js'
+<script setup>
+import { ref, reactive, computed, watch } from 'vue'
+import { onLoad } from '@dcloudio/uni-app'
+import { useCategories } from '@/composables/useCategories.js'
+import { useTransactions } from '@/composables/useTransactions.js'
 import { getToday } from '@/utils/date.js'
 import config from '@/config/index.js'
 
-export default {
-  data() {
-    return {
-      form: {
-        type: 'expense',
-        amount: '',
-        categoryId: null,
-        date: getToday(),
-        accountType: 'cash',
-        description: ''
-      },
-      categories: [],
-      accountTypes: config.accountTypes,
-      showDatePicker: false,
-      showAccountPicker: false,
-      loading: false
-    }
-  },
-  computed: {
-    // 根据类型筛选分类
-    filteredCategories() {
-      return this.categories.filter(cat => cat.type === this.form.type)
-    },
-    // 当前选中的账户
-    currentAccount() {
-      return this.accountTypes.find(acc => acc.value === this.form.accountType) || this.accountTypes[0]
-    }
-  },
-  onLoad() {
-    this.loadCategories()
-  },
-  methods: {
-    // 加载分类
-    async loadCategories() {
-      try {
-        const res = await getCategories()
-        this.categories = res.data.categories
-        
-        // 默认选择第一个分类
-        if (this.filteredCategories.length > 0) {
-          this.form.categoryId = this.filteredCategories[0].id
-        }
-      } catch (err) {
-        console.error('加载分类失败:', err)
-      }
-    },
-    
-    // 切换类型
-    changeType(type) {
-      this.form.type = type
-      // 重置分类选择
-      if (this.filteredCategories.length > 0) {
-        this.form.categoryId = this.filteredCategories[0].id
-      }
-    },
-    
-    // 金额输入
-    onAmountInput(e) {
-      let value = e.detail.value
-      // 只保留数字和一个小数点
-      value = value.replace(/[^\d.]/g, '')
-      // 只保留一个小数点
-      const dotIndex = value.indexOf('.')
-      if (dotIndex !== -1) {
-        value = value.substring(0, dotIndex + 1) + value.substring(dotIndex + 1).replace(/\./g, '')
-        // 只保留两位小数
-        if (value.split('.')[1] && value.split('.')[1].length > 2) {
-          value = parseFloat(value).toFixed(2)
-        }
-      }
-      this.form.amount = value
-    },
-    
-    // 选择分类
-    selectCategory(category) {
-      this.form.categoryId = category.id
-    },
-    
-    // 日期改变
-    onDateChange(e) {
-      this.form.date = e.detail.value
-      this.showDatePicker = false
-    },
-    
-    // 账户改变
-    onAccountChange(e) {
-      this.form.accountType = this.accountTypes[e.detail.value].value
-      this.showAccountPicker = false
-    },
-    
-    // 提交
-    async handleSubmit() {
-      // 验证
-      if (!this.form.amount || parseFloat(this.form.amount) <= 0) {
-        uni.showToast({
-          title: '请输入金额',
-          icon: 'none'
-        })
-        return
-      }
-      
-      if (!this.form.categoryId) {
-        uni.showToast({
-          title: '请选择分类',
-          icon: 'none'
-        })
-        return
-      }
-      
-      try {
-        this.loading = true
-        await createTransaction(this.form)
-        
-        uni.showToast({
-          title: '记账成功',
-          icon: 'success'
-        })
-        
-        setTimeout(() => {
-          uni.navigateBack()
-        }, 1500)
-      } catch (err) {
-        console.error('记账失败:', err)
-      } finally {
-        this.loading = false
-      }
+// 使用组合式函数
+const { categories, loadCategories } = useCategories()
+const { addTransaction } = useTransactions()
+
+// 表单数据
+const form = reactive({
+  type: 'expense',
+  amount: '',
+  categoryId: null,
+  date: getToday(),
+  accountType: 'cash',
+  description: ''
+})
+
+// 其他响应式数据
+const accountTypes = ref(config.accountTypes)
+const showDatePicker = ref(false)
+const showAccountPicker = ref(false)
+const loading = ref(false)
+
+// 计算属性：根据类型筛选分类
+const filteredCategories = computed(() => {
+  return categories.value.filter(cat => cat.type === form.type)
+})
+
+// 计算属性：当前选中的账户
+const currentAccount = computed(() => {
+  return accountTypes.value.find(acc => acc.value === form.accountType) || accountTypes.value[0]
+})
+
+// 监听类型变化，自动选择第一个分类
+watch(() => form.type, () => {
+  if (filteredCategories.value.length > 0) {
+    form.categoryId = filteredCategories.value[0].id
+  }
+})
+
+// 监听分类加载完成，设置默认分类
+watch(categories, () => {
+  if (filteredCategories.value.length > 0 && !form.categoryId) {
+    form.categoryId = filteredCategories.value[0].id
+  }
+}, { immediate: true })
+
+// 切换类型
+const changeType = (type) => {
+  form.type = type
+  // 重置分类选择在watch中处理
+}
+
+// 金额输入处理
+const onAmountInput = (e) => {
+  let value = e.detail.value
+  // 只保留数字和一个小数点
+  value = value.replace(/[^\d.]/g, '')
+  // 只保留一个小数点
+  const dotIndex = value.indexOf('.')
+  if (dotIndex !== -1) {
+    value = value.substring(0, dotIndex + 1) + value.substring(dotIndex + 1).replace(/\./g, '')
+    // 只保留两位小数
+    if (value.split('.')[1] && value.split('.')[1].length > 2) {
+      value = parseFloat(value).toFixed(2)
     }
   }
+  form.amount = value
 }
+
+// 选择分类
+const selectCategory = (category) => {
+  form.categoryId = category.id
+}
+
+// 日期改变
+const onDateChange = (e) => {
+  form.date = e.detail.value
+  showDatePicker.value = false
+}
+
+// 账户改变
+const onAccountChange = (e) => {
+  form.accountType = accountTypes.value[e.detail.value].value
+  showAccountPicker.value = false
+}
+
+// 提交表单
+const handleSubmit = async () => {
+  // 表单验证
+  if (!form.amount || parseFloat(form.amount) <= 0) {
+    uni.showToast({
+      title: '请输入金额',
+      icon: 'none'
+    })
+    return
+  }
+  
+  if (!form.categoryId) {
+    uni.showToast({
+      title: '请选择分类',
+      icon: 'none'
+    })
+    return
+  }
+  
+  try {
+    loading.value = true
+    await addTransaction(form)
+    
+    uni.showToast({
+      title: '记账成功',
+      icon: 'success'
+    })
+    
+    setTimeout(() => {
+      uni.navigateBack()
+    }, 1500)
+  } catch (err) {
+    console.error('记账失败:', err)
+  } finally {
+    loading.value = false
+  }
+}
+
+// 生命周期钩子
+onLoad(() => {
+  loadCategories()
+})
 </script>
 
 <style scoped>

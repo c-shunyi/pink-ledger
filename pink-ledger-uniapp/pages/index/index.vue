@@ -2,23 +2,56 @@
   <view class="container">
     <!-- 头部统计卡片 -->
     <view class="header-card">
-      <view class="month-selector">
-        <text class="month-text">{{ currentMonth }}</text>
-      </view>
-      <view class="summary">
-        <view class="summary-item">
-          <text class="summary-label">收入</text>
-          <text class="summary-value income">¥{{ summary.totalIncome }}</text>
+      <view class="header-content">
+        <!-- 左侧时间选择 -->
+        <view class="time-section" @click="showDatePicker = true">
+          <text class="year-text">{{ currentYear }}年</text>
+          <text class="month-text">{{ currentMonthNum }}月</text>
         </view>
-        <view class="summary-divider"></view>
-        <view class="summary-item">
+        
+        <!-- 中间支出 -->
+        <view class="summary-section">
           <text class="summary-label">支出</text>
           <text class="summary-value expense">¥{{ summary.totalExpense }}</text>
         </view>
+        
+        <!-- 右侧收入 -->
+        <view class="summary-section">
+          <text class="summary-label">收入</text>
+          <text class="summary-value income">¥{{ summary.totalIncome }}</text>
+        </view>
       </view>
-      <view class="balance">
-        <text class="balance-label">结余</text>
-        <text class="balance-value">¥{{ summary.balance }}</text>
+    </view>
+    
+    <!-- 年月选择弹框 -->
+    <view v-if="showDatePicker" class="date-picker-overlay" @click="showDatePicker = false">
+      <view class="date-picker-modal" @click.stop>
+        <view class="picker-header">
+          <text class="picker-title">选择年月</text>
+          <text class="picker-close" @click="showDatePicker = false">✕</text>
+        </view>
+        <view class="picker-content">
+          <picker-view 
+            :value="pickerValue" 
+            @change="onPickerChange"
+            class="picker-view"
+          >
+            <picker-view-column>
+              <view v-for="(year, index) in yearList" :key="index" class="picker-item">
+                {{ year }}年
+              </view>
+            </picker-view-column>
+            <picker-view-column>
+              <view v-for="(month, index) in monthList" :key="index" class="picker-item">
+                {{ month }}月
+              </view>
+            </picker-view-column>
+          </picker-view>
+        </view>
+        <view class="picker-footer">
+          <view class="picker-btn cancel" @click="showDatePicker = false">取消</view>
+          <view class="picker-btn confirm" @click="confirmDateChange">确定</view>
+        </view>
       </view>
     </view>
     
@@ -41,16 +74,18 @@
       </view>
     </view>
     
-    <!-- 账单列表 -->
-    <scroll-view 
-      class="transaction-list" 
-      scroll-y 
-      @scrolltolower="loadMore"
-      refresher-enabled
-      :refresher-triggered="refreshing"
-      @refresherrefresh="onRefresh"
-      :show-scrollbar="false"
-    >
+    <!-- 账单列表容器 -->
+    <view class="list-container">
+      <scroll-view 
+        class="transaction-list" 
+        scroll-y 
+        @scrolltolower="loadMore"
+        refresher-enabled
+        :refresher-triggered="refreshing"
+        @refresherrefresh="onRefresh"
+        :show-scrollbar="false"
+        enhanced
+      >
       <view v-if="groupedTransactions.length > 0">
         <view v-for="group in groupedTransactions" :key="group.date" class="date-group">
           <view class="date-header">
@@ -92,7 +127,8 @@
         <text class="empty-text">暂无账单记录</text>
         <text class="empty-tip">点击下方 + 号开始记账吧</text>
       </view>
-    </scroll-view>
+      </scroll-view>
+    </view>
     
     <!-- 添加按钮 -->
     <view class="add-btn" @click="goToAdd">
@@ -101,231 +137,232 @@
   </view>
 </template>
 
-<script>
-import { getTransactions, getStatistics } from '@/utils/api.js'
-import { getToken } from '@/utils/storage.js'
-import { formatDate, getFriendlyDate, getMonthStart, getMonthEnd } from '@/utils/date.js'
+<script setup>
+import { ref, computed } from 'vue'
+import { onLoad, onShow } from '@dcloudio/uni-app'
+import { useAuth } from '@/composables/useAuth.js'
+import { useTransactions } from '@/composables/useTransactions.js'
 
-export default {
-  data() {
-    return {
-      filterType: 'all', // all, expense, income
-      transactions: [],
-      summary: {
-        totalIncome: '0.00',
-        totalExpense: '0.00',
-        balance: '0.00'
-      },
-      currentMonth: '',
-      page: 1,
-      limit: 20,
-      hasMore: true,
-      refreshing: false,
-      loading: false
-    }
-  },
-  computed: {
-    // 按日期分组的账单
-    groupedTransactions() {
-      const groups = {}
-      
-      this.transactions.forEach(item => {
-        const date = item.date
-        if (!groups[date]) {
-          groups[date] = {
-            date,
-            dateText: getFriendlyDate(date),
-            transactions: [],
-            expenseTotal: 0,
-            incomeTotal: 0
-          }
-        }
-        
-        groups[date].transactions.push(item)
-        
-        if (item.type === 'expense') {
-          groups[date].expenseTotal += parseFloat(item.amount)
-        } else {
-          groups[date].incomeTotal += parseFloat(item.amount)
-        }
-      })
-      
-      // 转换为数组并格式化金额
-      return Object.values(groups).map(group => ({
-        ...group,
-        expenseTotal: group.expenseTotal.toFixed(2),
-        incomeTotal: group.incomeTotal.toFixed(2)
-      }))
-    }
-  },
-  onLoad() {
-    // 检查登录状态
-    const token = getToken()
-    if (!token) {
-      uni.reLaunch({
-        url: '/pages/login/login'
-      })
-      return
-    }
-    
-    this.initCurrentMonth()
-    this.loadData()
-  },
-  onShow() {
-    // 每次显示页面时刷新数据
-    const token = getToken()
-    if (token) {
-      this.refreshData()
-    }
-  },
-  methods: {
-    // 初始化当前月份
-    initCurrentMonth() {
-      const now = new Date()
-      const year = now.getFullYear()
-      const month = now.getMonth() + 1
-      this.currentMonth = `${year}年${month}月`
-    },
-    
-    // 加载数据
-    async loadData() {
-      if (this.loading) return
-      
-      try {
-        this.loading = true
-        
-        const params = {
-          page: this.page,
-          limit: this.limit,
-          startDate: getMonthStart(),
-          endDate: getMonthEnd()
-        }
-        
-        if (this.filterType !== 'all') {
-          params.type = this.filterType
-        }
-        
-        const res = await getTransactions(params)
-        
-        if (this.page === 1) {
-          this.transactions = res.data.transactions
-        } else {
-          this.transactions = [...this.transactions, ...res.data.transactions]
-        }
-        
-        this.hasMore = this.page < res.data.pagination.totalPages
-        
-        // 加载统计数据
-        await this.loadStatistics()
-      } catch (err) {
-        console.error('加载数据失败:', err)
-      } finally {
-        this.loading = false
-        this.refreshing = false
-      }
-    },
-    
-    // 加载统计数据
-    async loadStatistics() {
-      try {
-        const res = await getStatistics({
-          startDate: getMonthStart(),
-          endDate: getMonthEnd()
-        })
-        
-        this.summary = {
-          totalIncome: res.data.summary.totalIncome.toFixed(2),
-          totalExpense: res.data.summary.totalExpense.toFixed(2),
-          balance: res.data.summary.balance.toFixed(2)
-        }
-      } catch (err) {
-        console.error('加载统计数据失败:', err)
-      }
-    },
-    
-    // 刷新数据
-    async refreshData() {
-      this.page = 1
-      this.hasMore = true
-      await this.loadData()
-    },
-    
-    // 下拉刷新
-    onRefresh() {
-      this.refreshing = true
-      this.refreshData()
-    },
-    
-    // 加载更多
-    loadMore() {
-      if (this.hasMore && !this.loading) {
-        this.page++
-        this.loadData()
-      }
-    },
-    
-    // 切换筛选类型
-    changeFilter(type) {
-      if (this.filterType === type) return
-      
-      this.filterType = type
-      this.page = 1
-      this.hasMore = true
-      this.transactions = []
-      this.loadData()
-    },
-    
-    // 跳转到添加页面
-    goToAdd() {
-      uni.navigateTo({
-        url: '/pages/transaction/add'
-      })
-    },
-    
-    // 跳转到详情页面
-    goToDetail(id) {
-      uni.navigateTo({
-        url: `/pages/transaction/detail?id=${id}`
-      })
-    }
+// 使用组合式函数
+const { isLoggedIn } = useAuth()
+const {
+  groupedTransactions,
+  summary,
+  loading,
+  hasMore,
+  refreshData,
+  loadMore: loadMoreTransactions
+} = useTransactions()
+
+// 本页面特有的响应式数据
+const filterType = ref('all') // all, expense, income
+const currentMonth = ref('')
+const currentYear = ref('')
+const currentMonthNum = ref('')
+const refreshing = ref(false)
+
+// 日期选择相关
+const showDatePicker = ref(false)
+const pickerValue = ref([0, 0])
+const yearList = ref([])
+const monthList = ref([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
+const tempPickerValue = ref([0, 0])
+
+// 初始化当前月份
+const initCurrentMonth = () => {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = now.getMonth() + 1
+  
+  currentYear.value = year
+  currentMonthNum.value = month
+  currentMonth.value = `${year}年${month}月`
+  
+  // 生成年份列表（当前年前后各5年）
+  yearList.value = []
+  for (let i = year - 5; i <= year + 5; i++) {
+    yearList.value.push(i)
+  }
+  
+  // 设置默认选择器值
+  const yearIndex = yearList.value.findIndex(y => y === year)
+  const monthIndex = month - 1
+  pickerValue.value = [yearIndex, monthIndex]
+  tempPickerValue.value = [yearIndex, monthIndex]
+}
+
+// 加载数据（根据筛选条件）
+const loadData = async () => {
+  const params = {
+    year: currentYear.value,
+    month: currentMonthNum.value
+  }
+  
+  if (filterType.value !== 'all') {
+    params.type = filterType.value
+  }
+  
+  try {
+    await refreshData(params)
+  } catch (err) {
+    console.error('加载数据失败:', err)
+  } finally {
+    refreshing.value = false
   }
 }
+
+// 下拉刷新
+const onRefresh = () => {
+  refreshing.value = true
+  loadData()
+}
+
+// 加载更多
+const loadMore = () => {
+  const params = {
+    year: currentYear.value,
+    month: currentMonthNum.value
+  }
+  
+  if (filterType.value !== 'all') {
+    params.type = filterType.value
+  }
+  
+  loadMoreTransactions(params)
+}
+
+// 切换筛选类型
+const changeFilter = (type) => {
+  if (filterType.value === type) return
+  
+  filterType.value = type
+  loadData()
+}
+
+// 跳转到添加页面
+const goToAdd = () => {
+  uni.navigateTo({
+    url: '/pages/transaction/add'
+  })
+}
+
+// 跳转到详情页面
+const goToDetail = (id) => {
+  uni.navigateTo({
+    url: `/pages/transaction/detail?id=${id}`
+  })
+}
+
+// 日期选择器相关方法
+const onPickerChange = (e) => {
+  tempPickerValue.value = e.detail.value
+}
+
+const confirmDateChange = () => {
+  const yearIndex = tempPickerValue.value[0]
+  const monthIndex = tempPickerValue.value[1]
+  
+  if (yearIndex >= 0 && yearIndex < yearList.value.length && 
+      monthIndex >= 0 && monthIndex < monthList.value.length) {
+    const selectedYear = yearList.value[yearIndex]
+    const selectedMonth = monthList.value[monthIndex]
+    
+    currentYear.value = selectedYear
+    currentMonthNum.value = selectedMonth
+    currentMonth.value = `${selectedYear}年${selectedMonth}月`
+    
+    pickerValue.value = [...tempPickerValue.value]
+    showDatePicker.value = false
+    
+    // 重新加载数据
+    loadData()
+  }
+}
+
+// 生命周期钩子
+onLoad(() => {
+  // 检查登录状态
+  if (!isLoggedIn.value) {
+    uni.reLaunch({
+      url: '/pages/login/login'
+    })
+    return
+  }
+  
+  initCurrentMonth()
+  loadData()
+})
+
+onShow(() => {
+  // 每次显示页面时刷新数据
+  if (isLoggedIn.value) {
+    loadData()
+  }
+})
 </script>
 
 <style scoped>
+/* 全局隐藏滚动条样式 */
+::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  color: transparent !important;
+}
+
+::-webkit-scrollbar-track {
+  display: none !important;
+}
+
+::-webkit-scrollbar-thumb {
+  display: none !important;
+}
+
 .container {
-  min-height: 100vh;
+  height: 100vh;
   background: #F5F5F5;
   overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 /* 头部统计卡片 */
 .header-card {
   background: linear-gradient(135deg, #FF9A9E 0%, #FAD0C4 100%);
   padding: 60rpx 40rpx 40rpx;
-  border-radius: 0 0 50rpx 50rpx;
+  border-radius: 0 0 20rpx 20rpx;
 }
 
-.month-selector {
+.header-content {
   display: flex;
-  justify-content: center;
-  margin-bottom: 40rpx;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* 左侧时间选择区域 */
+.time-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+}
+
+.year-text {
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 5rpx;
 }
 
 .month-text {
-  font-size: 36rpx;
+  font-size: 42rpx;
   font-weight: bold;
   color: #fff;
 }
 
-.summary {
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  margin-bottom: 30rpx;
-}
-
-.summary-item {
+/* 中间支出和右侧收入 */
+.summary-section {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -338,41 +375,107 @@ export default {
 }
 
 .summary-value {
-  font-size: 40rpx;
-  font-weight: bold;
-  color: #fff;
-}
-
-.summary-divider {
-  width: 2rpx;
-  height: 60rpx;
-  background: rgba(255, 255, 255, 0.3);
-}
-
-.balance {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding-top: 20rpx;
-  border-top: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-.balance-label {
-  font-size: 28rpx;
-  color: rgba(255, 255, 255, 0.9);
-  margin-right: 20rpx;
-}
-
-.balance-value {
   font-size: 36rpx;
   font-weight: bold;
   color: #fff;
 }
 
+/* 日期选择弹框样式 */
+.date-picker-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.date-picker-modal {
+  background: #fff;
+  border-radius: 20rpx;
+  width: 600rpx;
+  max-height: 80vh;
+  overflow: hidden;
+}
+
+.picker-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30rpx;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.picker-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.picker-close {
+  font-size: 36rpx;
+  color: #999;
+  width: 50rpx;
+  height: 50rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #f5f5f5;
+}
+
+.picker-content {
+  height: 400rpx;
+}
+
+.picker-view {
+  width: 100%;
+  height: 100%;
+}
+
+.picker-item {
+  height: 80rpx;
+  line-height: 80rpx;
+  text-align: center;
+  font-size: 28rpx;
+  color: #333;
+}
+
+.picker-footer {
+  display: flex;
+  border-top: 1px solid #f0f0f0;
+}
+
+.picker-btn {
+  flex: 1;
+  height: 80rpx;
+  line-height: 80rpx;
+  text-align: center;
+  font-size: 28rpx;
+  border-right: 1px solid #f0f0f0;
+}
+
+.picker-btn:last-child {
+  border-right: none;
+}
+
+.picker-btn.cancel {
+  color: #999;
+}
+
+.picker-btn.confirm {
+  color: #FF6B6B;
+  font-weight: bold;
+}
+
 /* 筛选条件 */
 .filter-bar {
   display: flex;
-  padding: 30rpx 40rpx;
+  padding: 20rpx 30rpx;
   background: #fff;
   margin: 20rpx 30rpx;
   border-radius: 20rpx;
@@ -394,17 +497,38 @@ export default {
   font-weight: bold;
 }
 
+/* 账单列表容器 */
+.list-container {
+  flex: 1;
+  overflow: hidden;
+}
+
 /* 账单列表 */
 .transaction-list {
   box-sizing: border-box;
-  padding: 0 30rpx;
-  /* 隐藏滚动条 */
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+  padding: 0 30rpx 20rpx;
+  /* 占满父容器高度 */
+  height: 100%;
+  /* 隐藏滚动条 - 多种方法组合 */
+  -ms-overflow-style: none; /* IE和Edge */
+  scrollbar-width: none; /* Firefox */
+  overflow: -moz-scrollbars-none; /* Firefox旧版本 */
 }
 
+/* 隐藏webkit系滚动条 */
 .transaction-list::-webkit-scrollbar {
-  display: none;
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  color: transparent !important;
+}
+
+.transaction-list::-webkit-scrollbar-track {
+  display: none !important;
+}
+
+.transaction-list::-webkit-scrollbar-thumb {
+  display: none !important;
 }
 
 .date-group {

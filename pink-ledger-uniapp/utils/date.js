@@ -49,6 +49,24 @@ export const getMonthEnd = () => {
 }
 
 /**
+ * 获取指定年月的第一天
+ * @param {Number} year 年份
+ * @param {Number} month 月份 (1-12)
+ */
+export const getSpecificMonthStart = (year, month) => {
+  return formatDate(new Date(year, month - 1, 1))
+}
+
+/**
+ * 获取指定年月的最后一天
+ * @param {Number} year 年份
+ * @param {Number} month 月份 (1-12)
+ */
+export const getSpecificMonthEnd = (year, month) => {
+  return formatDate(new Date(year, month, 0))
+}
+
+/**
  * 获取本年第一天
  */
 export const getYearStart = () => {
