@@ -1,0 +1,161 @@
+### Pink Ledger API 测试示例
+### 使用 REST Client 插件或 Postman 进行测试
+
+@baseUrl = http://localhost:3000/api
+@token = your_token_here
+
+### ========== 健康检查 ==========
+GET {{baseUrl}}/health
+
+### ========== 用户认证 ==========
+
+### 1. 用户注册
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "password": "123456",
+  "nickname": "测试用户"
+}
+
+### 2. 用户登录
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "password": "123456"
+}
+
+### 3. 获取当前用户信息
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{token}}
+
+### 4. 更新用户信息
+PUT {{baseUrl}}/auth/profile
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nickname": "新昵称",
+  "avatar": "https://example.com/avatar.jpg"
+}
+
+### ========== 分类管理 ==========
+
+### 5. 获取所有分类
+GET {{baseUrl}}/categories
+Authorization: Bearer {{token}}
+
+### 6. 获取支出分类
+GET {{baseUrl}}/categories?type=expense
+Authorization: Bearer {{token}}
+
+### 7. 获取收入分类
+GET {{baseUrl}}/categories?type=income
+Authorization: Bearer {{token}}
+
+### 8. 创建自定义分类
+POST {{baseUrl}}/categories
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "零食",
+  "type": "expense",
+  "icon": "🍭",
+  "color": "#FF6B6B"
+}
+
+### 9. 更新分类
+PUT {{baseUrl}}/categories/14
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "零食饮料",
+  "icon": "🥤",
+  "color": "#00FF00"
+}
+
+### 10. 删除分类
+DELETE {{baseUrl}}/categories/14
+Authorization: Bearer {{token}}
+
+### ========== 账单管理 ==========
+
+### 11. 创建支出账单
+POST {{baseUrl}}/transactions
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "categoryId": 1,
+  "type": "expense",
+  "amount": 50.00,
+  "date": "2024-01-15",
+  "description": "午餐",
+  "accountType": "alipay"
+}
+
+### 12. 创建收入账单
+POST {{baseUrl}}/transactions
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "categoryId": 9,
+  "type": "income",
+  "amount": 5000.00,
+  "date": "2024-01-01",
+  "description": "月工资",
+  "accountType": "bank"
+}
+
+### 13. 获取所有账单（分页）
+GET {{baseUrl}}/transactions?page=1&limit=20
+Authorization: Bearer {{token}}
+
+### 14. 按类型筛选账单
+GET {{baseUrl}}/transactions?type=expense&page=1&limit=10
+Authorization: Bearer {{token}}
+
+### 15. 按日期范围筛选账单
+GET {{baseUrl}}/transactions?startDate=2024-01-01&endDate=2024-12-31
+Authorization: Bearer {{token}}
+
+### 16. 按分类筛选账单
+GET {{baseUrl}}/transactions?categoryId=1
+Authorization: Bearer {{token}}
+
+### 17. 组合筛选
+GET {{baseUrl}}/transactions?type=expense&categoryId=1&startDate=2024-01-01&endDate=2024-12-31&page=1&limit=10
+Authorization: Bearer {{token}}
+
+### 18. 获取单条账单详情
+GET {{baseUrl}}/transactions/1
+Authorization: Bearer {{token}}
+
+### 19. 更新账单
+PUT {{baseUrl}}/transactions/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "amount": 60.00,
+  "description": "午餐（已修改）"
+}
+
+### 20. 删除账单
+DELETE {{baseUrl}}/transactions/1
+Authorization: Bearer {{token}}
+
+### 21. 获取统计数据
+GET {{baseUrl}}/transactions/statistics
+Authorization: Bearer {{token}}
+
+### 22. 获取指定时间范围的统计数据
+GET {{baseUrl}}/transactions/statistics?startDate=2024-01-01&endDate=2024-12-31
+Authorization: Bearer {{token}}
+
