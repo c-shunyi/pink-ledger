@@ -1,0 +1,13 @@
+{
+  "name": "pink-ledger-uniapp",
+  "version": "1.0.0",
+  "description": "Pink Ledger UniApp Frontend",
+  "scripts": {},
+  "dependencies": {
+    "@dcloudio/uni-ui": "^1.5.11"
+  },
+  "devDependencies": {},
+  "author": "",
+  "license": "MIT"
+}
+

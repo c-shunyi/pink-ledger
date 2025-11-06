@@ -181,8 +181,7 @@ Content-Type: application/json
   "type": "expense",
   "amount": 50.00,
   "date": "2024-01-15",
-  "description": "午餐",
-  "accountType": "alipay"
+  "description": "午餐"
 }
 ```
 
@@ -249,7 +248,6 @@ GET /api/health
 - amount: 金额
 - date: 日期
 - description: 备注
-- accountType: 账户类型（cash/alipay/wechat/bank）
 - createdAt: 创建时间
 - updatedAt: 更新时间
 

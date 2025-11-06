@@ -124,7 +124,7 @@ exports.getTransaction = async (req, res) => {
 exports.createTransaction = async (req, res) => {
   try {
     const userId = req.userId;
-    const { categoryId, type, amount, date, description, accountType } = req.body;
+    const { categoryId, type, amount, date, description } = req.body;
 
     // 验证必填字段
     if (!categoryId || !type || !amount) {
@@ -165,8 +165,7 @@ exports.createTransaction = async (req, res) => {
       type,
       amount,
       date: date || new Date(),
-      description,
-      accountType
+      description
     });
 
     // 获取完整的交易记录（包含分类信息）
@@ -201,7 +200,7 @@ exports.updateTransaction = async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.userId;
-    const { categoryId, type, amount, date, description, accountType } = req.body;
+    const { categoryId, type, amount, date, description } = req.body;
 
     const transaction = await Transaction.findOne({
       where: { id, userId }
@@ -238,9 +237,6 @@ exports.updateTransaction = async (req, res) => {
     }
     if (description !== undefined) {
       transaction.description = description;
-    }
-    if (accountType) {
-      transaction.accountType = accountType;
     }
 
     await transaction.save();

@@ -20,7 +20,7 @@
     
     <!-- 金额输入 -->
     <view class="amount-section">
-      <text class="currency">¥</text>
+      <text class="currency"></text>
       <input 
         class="amount-input" 
         v-model="form.amount"
@@ -33,7 +33,7 @@
     <!-- 分类选择 -->
     <view class="category-section">
       <text class="section-title">选择分类</text>
-      <scroll-view class="category-list" scroll-y>
+      <view class="category-list">
         <view 
           v-for="category in filteredCategories" 
           :key="category.id"
@@ -44,27 +44,32 @@
           <text class="category-icon">{{ category.icon }}</text>
           <text class="category-name">{{ category.name }}</text>
         </view>
-      </scroll-view>
+      </view>
     </view>
     
     <!-- 表单项 -->
     <view class="form-section">
-      <view class="form-item" @click="showDatePicker = true">
-        <text class="form-label">日期</text>
-        <text class="form-value">{{ form.date }}</text>
-      </view>
-      
-      <view class="form-item" @click="showAccountPicker = true">
-        <text class="form-label">账户</text>
-        <text class="form-value">{{ currentAccount.label }}</text>
-      </view>
+      <!-- 日期选择器 -->
+      <picker
+        mode="date"
+        :value="form.date"
+        @change="onDateChange"
+      >
+        <view class="form-item">
+          <text class="form-label">日期</text>
+          <view class="form-value-wrapper">
+            <text class="form-value">{{ form.date }}</text>
+            <uni-icons type="right" size="18" color="#999"></uni-icons>
+          </view>
+        </view>
+      </picker>
       
       <view class="form-item">
         <text class="form-label">备注</text>
         <input 
           class="form-input" 
           v-model="form.description"
-          placeholder="添加备注（可选）"
+          placeholder="添加备注"
           placeholder-class="placeholder"
         />
       </view>
@@ -76,29 +81,6 @@
         完成
       </button>
     </view>
-    
-    <!-- 日期选择器 -->
-    <picker
-      v-if="showDatePicker"
-      mode="date"
-      :value="form.date"
-      @change="onDateChange"
-      @cancel="showDatePicker = false"
-    >
-      <view></view>
-    </picker>
-    
-    <!-- 账户选择器 -->
-    <picker
-      v-if="showAccountPicker"
-      mode="selector"
-      :range="accountTypes"
-      range-key="label"
-      @change="onAccountChange"
-      @cancel="showAccountPicker = false"
-    >
-      <view></view>
-    </picker>
   </view>
 </template>
 
@@ -122,24 +104,15 @@ const form = reactive({
   amount: '',
   categoryId: null,
   date: getToday(),
-  accountType: 'cash',
   description: ''
 })
 
 // 其他响应式数据
-const accountTypes = ref(config.accountTypes)
-const showDatePicker = ref(false)
-const showAccountPicker = ref(false)
 const loading = ref(false)
 
 // 计算属性：根据类型筛选分类
 const filteredCategories = computed(() => {
   return categories.value.filter(cat => cat.type === form.type)
-})
-
-// 计算属性：当前选中的账户
-const currentAccount = computed(() => {
-  return accountTypes.value.find(acc => acc.value === form.accountType) || accountTypes.value[0]
 })
 
 // 监听类型变化，自动选择第一个分类
@@ -187,13 +160,6 @@ const selectCategory = (category) => {
 // 日期改变
 const onDateChange = (e) => {
   form.date = e.detail.value
-  showDatePicker.value = false
-}
-
-// 账户改变
-const onAccountChange = (e) => {
-  form.accountType = accountTypes.value[e.detail.value].value
-  showAccountPicker.value = false
 }
 
 // 提交表单
@@ -279,8 +245,7 @@ onLoad(() => {
 .amount-section {
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 80rpx 0;
+  padding: 50rpx;
   background: #fff;
   margin-bottom: 20rpx;
 }
@@ -296,8 +261,11 @@ onLoad(() => {
   font-size: 80rpx;
   color: #333;
   font-weight: bold;
-  min-width: 200rpx;
+  flex: 1;
   text-align: left;
+  max-width: 500rpx;
+  height: 100rpx;
+  line-height: 100rpx;
 }
 
 /* 分类选择 */
@@ -338,7 +306,7 @@ onLoad(() => {
   width: 80rpx;
   height: 80rpx;
   background: #F5F5F5;
-  border-radius: 50%;
+  border-radius: 20%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -382,8 +350,15 @@ onLoad(() => {
   color: #333;
 }
 
-.form-value {
+.form-value-wrapper {
   flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10rpx;
+}
+
+.form-value {
   font-size: 28rpx;
   color: #666;
   text-align: right;

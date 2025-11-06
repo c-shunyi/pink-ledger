@@ -22,17 +22,17 @@
     <view class="summary-card">
       <view class="summary-item">
         <text class="summary-label">总收入</text>
-        <text class="summary-value income">¥{{ summary.totalIncome }}</text>
+        <text class="summary-value income">{{ summary.totalIncome }}</text>
       </view>
       <view class="summary-divider"></view>
       <view class="summary-item">
         <text class="summary-label">总支出</text>
-        <text class="summary-value expense">¥{{ summary.totalExpense }}</text>
+        <text class="summary-value expense">{{ summary.totalExpense }}</text>
       </view>
       <view class="summary-divider"></view>
       <view class="summary-item">
         <text class="summary-label">结余</text>
-        <text class="summary-value balance">¥{{ summary.balance }}</text>
+        <text class="summary-value balance">{{ summary.balance }}</text>
       </view>
     </view>
     
@@ -42,7 +42,7 @@
       <view class="stats-section">
         <view class="stats-header">
           <text class="stats-title">支出分类</text>
-          <text class="stats-total">¥{{ summary.totalExpense }}</text>
+          <text class="stats-total">{{ summary.totalExpense }}</text>
         </view>
         <view class="stats-list">
           <view 
@@ -58,7 +58,7 @@
               </view>
             </view>
             <view class="stats-right">
-              <text class="stats-amount">¥{{ parseFloat(item.total).toFixed(2) }}</text>
+              <text class="stats-amount">{{ parseFloat(item.total).toFixed(2) }}</text>
               <text class="stats-percent">{{ getPercent(item.total, summary.totalExpense) }}%</text>
             </view>
             <view class="stats-bar">
@@ -79,7 +79,7 @@
       <view class="stats-section">
         <view class="stats-header">
           <text class="stats-title">收入分类</text>
-          <text class="stats-total income">¥{{ summary.totalIncome }}</text>
+          <text class="stats-total income">{{ summary.totalIncome }}</text>
         </view>
         <view class="stats-list">
           <view 
@@ -95,7 +95,7 @@
               </view>
             </view>
             <view class="stats-right">
-              <text class="stats-amount">¥{{ parseFloat(item.total).toFixed(2) }}</text>
+              <text class="stats-amount">{{ parseFloat(item.total).toFixed(2) }}</text>
               <text class="stats-percent">{{ getPercent(item.total, summary.totalIncome) }}%</text>
             </view>
             <view class="stats-bar">

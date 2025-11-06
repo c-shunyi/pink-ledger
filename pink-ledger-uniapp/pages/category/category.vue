@@ -189,7 +189,7 @@ export default {
   width: 80rpx;
   height: 80rpx;
   background: #F5F5F5;
-  border-radius: 50%;
+  border-radius: 20%;
   display: flex;
   align-items: center;
   justify-content: center;

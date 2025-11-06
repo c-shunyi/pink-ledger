@@ -12,13 +12,13 @@
         <!-- 中间支出 -->
         <view class="summary-section">
           <text class="summary-label">支出</text>
-          <text class="summary-value expense">¥{{ summary.totalExpense }}</text>
+          <text class="summary-value expense">{{ summary.totalExpense }}</text>
         </view>
         
         <!-- 右侧收入 -->
         <view class="summary-section">
           <text class="summary-label">收入</text>
-          <text class="summary-value income">¥{{ summary.totalIncome }}</text>
+          <text class="summary-value income">{{ summary.totalIncome }}</text>
         </view>
       </view>
     </view>
@@ -91,7 +91,7 @@
           <view class="date-header">
             <text class="date-text">{{ group.dateText }}</text>
             <text class="date-total">
-              支出 ¥{{ group.expenseTotal }} | 收入 ¥{{ group.incomeTotal }}
+              支出 {{ group.expenseTotal }} | 收入 {{ group.incomeTotal }}
             </text>
           </view>
           
@@ -113,7 +113,7 @@
                 class="amount" 
                 :class="item.type"
               >
-                {{ item.type === 'income' ? '+' : '-' }}¥{{ item.amount }}
+                {{ item.type === 'income' ? '+' : '-' }}{{ item.amount }}
               </text>
             </view>
           </view>

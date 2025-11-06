@@ -95,8 +95,7 @@ Content-Type: application/json
   "type": "expense",
   "amount": 50.00,
   "date": "2024-01-15",
-  "description": "午餐",
-  "accountType": "alipay"
+  "description": "午餐"
 }
 
 ### 12. 创建收入账单
@@ -109,8 +108,7 @@ Content-Type: application/json
   "type": "income",
   "amount": 5000.00,
   "date": "2024-01-01",
-  "description": "月工资",
-  "accountType": "bank"
+  "description": "月工资"
 }
 
 ### 13. 获取所有账单（分页）

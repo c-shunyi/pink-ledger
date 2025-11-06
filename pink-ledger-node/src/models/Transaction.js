@@ -40,12 +40,6 @@ module.exports = (sequelize) => {
       type: DataTypes.STRING(200),
       allowNull: true,
       comment: '备注'
-    },
-    accountType: {
-      type: DataTypes.STRING(20),
-      allowNull: true,
-      defaultValue: 'cash',
-      comment: '账户类型：cash-现金，alipay-支付宝，wechat-微信，bank-银行卡'
     }
   }, {
     tableName: 'transactions',
