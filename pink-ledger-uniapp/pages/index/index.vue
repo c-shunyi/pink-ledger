@@ -6,7 +6,11 @@
         <!-- 左侧时间选择 -->
         <view class="time-section" @click="showDatePicker = true">
           <text class="year-text">{{ currentYear }}年</text>
-          <text class="month-text">{{ currentMonthNum }}月</text>
+          <view class="month-wrapper">
+            <text class="month-num">{{ currentMonthNum }}</text>
+            <text class="month-unit">月</text>
+            <uni-icons type="down" size="16" color="rgba(255, 255, 255, 0.9)"></uni-icons>
+          </view>
         </view>
         
         <!-- 中间支出 -->
@@ -57,6 +61,9 @@
     
     <!-- 筛选条件 -->
     <view class="filter-bar">
+      <!-- 滑块背景 -->
+      <view class="filter-slider" :style="sliderStyle"></view>
+      
       <view class="filter-item" 
         :class="{ active: filterType === 'all' }" 
         @click="changeFilter('all')">
@@ -169,6 +176,24 @@ const pickerValue = ref([0, 0])
 const yearList = ref([])
 const monthList = ref([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
 const tempPickerValue = ref([0, 0])
+
+// 计算滑块位置
+const sliderStyle = computed(() => {
+  const filterMap = {
+    'all': 0,
+    'expense': 1,
+    'income': 2
+  }
+  const index = filterMap[filterType.value]
+  // 正确计算：左padding(30rpx) + 内容区域宽度(100% - 60rpx) * index / 3
+  const leftPosition = index === 0 
+    ? '30rpx' 
+    : `calc(30rpx + (100% - 60rpx) * ${index} / 3)`
+  
+  return {
+    left: leftPosition
+  }
+})
 
 // 初始化当前月份
 const initCurrentMonth = () => {
@@ -356,10 +381,22 @@ onShow(() => {
   margin-bottom: 5rpx;
 }
 
-.month-text {
-  font-size: 42rpx;
+.month-wrapper {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8rpx;
+}
+
+.month-num {
+  font-size: 54rpx;
   font-weight: bold;
   color: #fff;
+}
+
+.month-unit {
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 /* 中间支出和右侧收入 */
@@ -371,13 +408,13 @@ onShow(() => {
 }
 
 .summary-label {
-  font-size: 26rpx;
+  font-size: 28rpx;
   color: rgba(255, 255, 255, 0.9);
   margin-bottom: 10rpx;
 }
 
 .summary-value {
-  font-size: 36rpx;
+  font-size: 40rpx;
   font-weight: bold;
   color: #fff;
 }
@@ -476,6 +513,7 @@ onShow(() => {
 
 /* 筛选条件 */
 .filter-bar {
+  position: relative;
   display: flex;
   padding: 20rpx 30rpx;
   background: #fff;
@@ -483,18 +521,30 @@ onShow(() => {
   border-radius: 20rpx;
 }
 
+.filter-slider {
+  position: absolute;
+  top: 20rpx;
+  width: calc((100% - 60rpx) / 3);
+  height: calc(100% - 40rpx);
+  background: v-bind('themeColors.gradient');
+  border-radius: 10rpx;
+  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1;
+}
+
 .filter-item {
+  position: relative;
   flex: 1;
   text-align: center;
   padding: 15rpx 0;
   font-size: 28rpx;
   color: #666;
   border-radius: 10rpx;
-  transition: all 0.3s;
+  transition: color 0.3s;
+  z-index: 2;
 }
 
 .filter-item.active {
-  background: v-bind('themeColors.gradient');
   color: #fff;
   font-weight: bold;
 }

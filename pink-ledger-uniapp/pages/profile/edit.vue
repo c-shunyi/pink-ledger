@@ -4,7 +4,6 @@
       <view class="form-item">
         <text class="label">用户名</text>
         <text class="value disabled">{{ userInfo.username }}</text>
-        <text class="tip">用户名不可修改</text>
       </view>
       
       <view class="form-item">
@@ -37,6 +36,7 @@
 <script>
 import { getCurrentUser, updateProfile } from '@/api'
 import { getUserInfo, setUserInfo } from '@/utils/storage.js'
+import { useTheme } from '@/composables/useTheme.js'
 
 export default {
   data() {
@@ -47,6 +47,17 @@ export default {
         avatar: ''
       },
       loading: false
+    }
+  },
+  setup() {
+    const { currentThemeId, currentTheme, themeColors, availableThemes, setTheme } = useTheme()
+    
+    return {
+      currentThemeId,
+      currentTheme,
+      themeColors,
+      availableThemes,
+      setTheme
     }
   },
   onLoad() {
@@ -100,9 +111,9 @@ export default {
 
 <style scoped>
 .container {
-  min-height: 100vh;
   background: #F5F5F5;
   padding: 30rpx;
+  box-sizing: border-box;
 }
 
 .form-container {
@@ -158,13 +169,16 @@ export default {
 .save-btn {
   width: 100%;
   height: 90rpx;
-  background: linear-gradient(135deg, #FF9A9E 0%, #FAD0C4 100%);
+  background: v-bind('themeColors.gradient');
   color: #fff;
   border: none;
   border-radius: 45rpx;
   font-size: 32rpx;
   font-weight: bold;
   margin-top: 40rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .save-btn[loading] {

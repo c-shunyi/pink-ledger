@@ -1,8 +1,8 @@
 // 配置文件
 export default {
   // API 基础地址
-  // baseUrl: 'https://pink-ledger.shunyi.website/api',
-  baseUrl: 'http://localhost:8860/api',
+  baseUrl: 'https://pink-ledger.shunyi.website/api',
+  // baseUrl: 'http://localhost:8860/api',
   
   
   // 请求超时时间

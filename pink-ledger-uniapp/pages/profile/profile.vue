@@ -182,7 +182,6 @@ export default {
 .container {
   min-height: 100vh;
   background: #F5F5F5;
-  padding-bottom: 20rpx;
 }
 
 /* 用户信息卡片 */
@@ -293,6 +292,7 @@ export default {
 .menu-arrow {
   font-size: 50rpx;
   color: #ccc;
+  line-height: 1;
 }
 
 /* 退出登录 */
@@ -309,6 +309,9 @@ export default {
   border-radius: 45rpx;
   font-size: 32rpx;
   font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* 主题选择弹窗 */
