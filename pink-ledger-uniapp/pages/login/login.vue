@@ -40,7 +40,7 @@
 
 <script>
 import { login } from '@/utils/api.js'
-import { setToken, setUserInfo } from '@/utils/storage.js'
+import { setToken, setUserInfo, getToken, getUserInfo } from '@/utils/storage.js'
 
 export default {
   data() {
@@ -52,7 +52,33 @@ export default {
       loading: false
     }
   },
+  onLoad() {
+    // 检查是否已经登录
+    this.checkAutoLogin()
+  },
   methods: {
+    // 检查自动登录
+    checkAutoLogin() {
+      const token = getToken()
+      const userInfo = getUserInfo()
+      
+      if (token && userInfo) {
+        console.log('检测到已有登录信息，自动跳转到首页')
+        uni.showToast({
+          title: '已自动登录',
+          icon: 'success',
+          duration: 1500
+        })
+        
+        // 跳转到首页
+        setTimeout(() => {
+          uni.switchTab({
+            url: '/pages/index/index'
+          })
+        }, 1500)
+      }
+    },
+    
     // 登录
     async handleLogin() {
       // 表单验证
