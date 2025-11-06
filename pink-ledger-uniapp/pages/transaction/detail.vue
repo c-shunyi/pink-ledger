@@ -58,7 +58,7 @@
 </template>
 
 <script>
-import { getTransaction, deleteTransaction } from '@/utils/api.js'
+import { getTransaction, deleteTransaction } from '@/api'
 import { formatDate } from '@/utils/date.js'
 import config from '@/config/index.js'
 

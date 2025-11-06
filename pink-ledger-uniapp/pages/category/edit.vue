@@ -44,7 +44,7 @@
 </template>
 
 <script>
-import { createCategory, updateCategory } from '@/utils/api.js'
+import { createCategory, updateCategory } from '@/api'
 
 export default {
   data() {

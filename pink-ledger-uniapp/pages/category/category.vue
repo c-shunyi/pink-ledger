@@ -58,7 +58,7 @@
 </template>
 
 <script>
-import { getCategories, deleteCategory as deleteCategoryApi } from '@/utils/api.js'
+import { getCategories, deleteCategory as deleteCategoryApi } from '@/api'
 
 export default {
   data() {

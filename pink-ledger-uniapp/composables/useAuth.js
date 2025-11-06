@@ -3,7 +3,7 @@
  */
 import { ref, reactive } from 'vue'
 import { getToken, getUserInfo, setToken, setUserInfo, removeToken, removeUserInfo } from '@/utils/storage.js'
-import { login as apiLogin, register as apiRegister } from '@/utils/api.js'
+import { login as apiLogin, register as apiRegister } from '@/api'
 
 export function useAuth() {
   const loading = ref(false)

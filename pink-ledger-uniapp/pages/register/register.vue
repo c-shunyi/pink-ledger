@@ -60,7 +60,7 @@
 </template>
 
 <script>
-import { register } from '@/utils/api.js'
+import { register } from '@/api'
 import { useTheme } from '@/composables/useTheme.js'
 
 export default {

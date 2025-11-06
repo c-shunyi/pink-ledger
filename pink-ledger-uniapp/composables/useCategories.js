@@ -2,7 +2,7 @@
  * 分类相关的组合式函数
  */
 import { ref, computed } from 'vue'
-import { getCategories, createCategory, updateCategory, deleteCategory } from '@/utils/api.js'
+import { getCategories, createCategory, updateCategory, deleteCategory } from '@/api'
 
 export function useCategories() {
   const categories = ref([])

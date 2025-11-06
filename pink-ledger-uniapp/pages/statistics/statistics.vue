@@ -116,7 +116,7 @@
 </template>
 
 <script>
-import { getStatistics } from '@/utils/api.js'
+import { getStatistics } from '@/api'
 import { getMonthStart, getMonthEnd, getYearStart, getYearEnd } from '@/utils/date.js'
 
 export default {

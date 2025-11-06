@@ -2,7 +2,7 @@
  * 交易记录相关的组合式函数
  */
 import { ref, computed, reactive } from 'vue'
-import { getTransactions, getStatistics, createTransaction, updateTransaction, deleteTransaction } from '@/utils/api.js'
+import { getTransactions, getStatistics, createTransaction, updateTransaction, deleteTransaction } from '@/api'
 import { getFriendlyDate, getMonthStart, getMonthEnd, getSpecificMonthStart, getSpecificMonthEnd } from '@/utils/date.js'
 
 export function useTransactions() {

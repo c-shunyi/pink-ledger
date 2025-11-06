@@ -35,7 +35,7 @@
 </template>
 
 <script>
-import { getCurrentUser, updateProfile } from '@/utils/api.js'
+import { getCurrentUser, updateProfile } from '@/api'
 import { getUserInfo, setUserInfo } from '@/utils/storage.js'
 
 export default {

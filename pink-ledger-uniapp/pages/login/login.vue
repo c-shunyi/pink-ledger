@@ -41,7 +41,7 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { login } from '@/utils/api.js'
+import { login } from '@/api'
 import { setToken, setUserInfo, getToken, getUserInfo } from '@/utils/storage.js'
 import { useTheme } from '@/composables/useTheme.js'
 
