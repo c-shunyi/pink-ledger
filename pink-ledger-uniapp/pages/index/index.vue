@@ -132,7 +132,7 @@
     
     <!-- 添加按钮 -->
     <view class="add-btn" @click="goToAdd">
-      <text class="add-icon">+</text>
+      <uni-icons type="plusempty" size="26" color="#fff"></uni-icons>
     </view>
   </view>
 </template>
@@ -668,11 +668,11 @@ onShow(() => {
   align-items: center;
   justify-content: center;
   box-shadow: 0 10rpx 30rpx v-bind('themeColors.shadow');
+  cursor: pointer;
+  transition: transform 0.2s;
 }
 
-.add-icon {
-  font-size: 60rpx;
-  color: #fff;
-  font-weight: bold;
+.add-btn:active {
+  transform: scale(0.95);
 }
 </style>
