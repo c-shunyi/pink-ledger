@@ -177,6 +177,11 @@ const yearList = ref([])
 const monthList = ref([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
 const tempPickerValue = ref([0, 0])
 
+// 记录上一次的滑块位置，用于计算旋转方向
+const previousFilterIndex = ref(0)
+// 记录是否使用旋转效果（1:1比例随机）
+const useRotateEffect = ref(false)
+
 // 计算滑块位置
 const sliderStyle = computed(() => {
   const filterMap = {
@@ -185,13 +190,27 @@ const sliderStyle = computed(() => {
     'income': 2
   }
   const index = filterMap[filterType.value]
+  
   // 正确计算：左padding(30rpx) + 内容区域宽度(100% - 60rpx) * index / 3
   const leftPosition = index === 0 
     ? '30rpx' 
     : `calc(30rpx + (100% - 60rpx) * ${index} / 3)`
   
+  // 如果使用旋转效果，添加Z轴旋转
+  if (useRotateEffect.value) {
+    const rotateDirection = index > previousFilterIndex.value ? 1 : -1
+    const rotateAngle = rotateDirection * 180
+    
+    return {
+      left: leftPosition,
+      transform: `rotateZ(${rotateAngle}deg)`
+    }
+  }
+  
+  // 否则仅使用平移效果
   return {
-    left: leftPosition
+    left: leftPosition,
+    transform: 'rotateZ(0deg)'
   }
 })
 
@@ -261,6 +280,17 @@ const loadMore = () => {
 // 切换筛选类型
 const changeFilter = (type) => {
   if (filterType.value === type) return
+  
+  // 记录切换前的位置
+  const filterMap = {
+    'all': 0,
+    'expense': 1,
+    'income': 2
+  }
+  previousFilterIndex.value = filterMap[filterType.value]
+  
+  // 1:1比例随机决定是否使用旋转效果
+  useRotateEffect.value = Math.random() < 0.5
   
   filterType.value = type
   loadData()
@@ -528,7 +558,9 @@ onShow(() => {
   height: calc(100% - 40rpx);
   background: v-bind('themeColors.gradient');
   border-radius: 10rpx;
-  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center center;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
   z-index: 1;
 }
 
