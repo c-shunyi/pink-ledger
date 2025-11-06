@@ -49,6 +49,7 @@
       refresher-enabled
       :refresher-triggered="refreshing"
       @refresherrefresh="onRefresh"
+      :show-scrollbar="false"
     >
       <view v-if="groupedTransactions.length > 0">
         <view v-for="group in groupedTransactions" :key="group.date" class="date-group">
@@ -295,7 +296,7 @@ export default {
 .container {
   min-height: 100vh;
   background: #F5F5F5;
-  padding-bottom: 120rpx;
+  overflow-x: hidden;
 }
 
 /* 头部统计卡片 */
@@ -395,8 +396,15 @@ export default {
 
 /* 账单列表 */
 .transaction-list {
-  height: calc(100vh - 500rpx);
+  box-sizing: border-box;
   padding: 0 30rpx;
+  /* 隐藏滚动条 */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.transaction-list::-webkit-scrollbar {
+  display: none;
 }
 
 .date-group {
@@ -419,6 +427,9 @@ export default {
 .date-total {
   font-size: 24rpx;
   color: #999;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .transaction-item {
@@ -455,11 +466,17 @@ export default {
   font-size: 30rpx;
   color: #333;
   margin-bottom: 5rpx;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .description {
   font-size: 24rpx;
   color: #999;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .transaction-amount {
