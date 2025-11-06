@@ -1,5 +1,6 @@
 const { Category } = require('../models');
 const { Op } = require('sequelize');
+const sendResponse = require('../utils/response');
 
 // 获取分类列表
 exports.getCategories = async (req, res) => {
@@ -23,18 +24,16 @@ exports.getCategories = async (req, res) => {
       order: [['isSystem', 'DESC'], ['createdAt', 'ASC']]
     });
 
-    res.json({
-      success: true,
-      data: {
-        categories
-      }
+    return sendResponse(res, {
+      code: 200,
+      msg: '获取成功',
+      data: { categories }
     });
   } catch (error) {
     console.error('获取分类列表失败:', error);
-    res.status(500).json({
-      success: false,
-      message: '获取分类列表失败',
-      error: error.message
+    return sendResponse(res, {
+      code: 500,
+      msg: '获取分类列表失败'
     });
   }
 };
@@ -46,16 +45,16 @@ exports.createCategory = async (req, res) => {
     const userId = req.userId;
 
     if (!name || !type) {
-      return res.status(400).json({
-        success: false,
-        message: '分类名称和类型不能为空'
+      return sendResponse(res, {
+        code: 400,
+        msg: '分类名称和类型不能为空'
       });
     }
 
     if (!['income', 'expense'].includes(type)) {
-      return res.status(400).json({
-        success: false,
-        message: '分类类型必须是 income 或 expense'
+      return sendResponse(res, {
+        code: 400,
+        msg: '分类类型必须是 income 或 expense'
       });
     }
 
@@ -68,19 +67,16 @@ exports.createCategory = async (req, res) => {
       isSystem: false
     });
 
-    res.status(201).json({
-      success: true,
-      message: '创建成功',
-      data: {
-        category
-      }
+    return sendResponse(res, {
+      code: 200,
+      msg: '创建成功',
+      data: { category }
     });
   } catch (error) {
     console.error('创建分类失败:', error);
-    res.status(500).json({
-      success: false,
-      message: '创建分类失败',
-      error: error.message
+    return sendResponse(res, {
+      code: 500,
+      msg: '创建分类失败'
     });
   }
 };
@@ -97,16 +93,16 @@ exports.updateCategory = async (req, res) => {
     });
 
     if (!category) {
-      return res.status(404).json({
-        success: false,
-        message: '分类不存在或无权限修改'
+      return sendResponse(res, {
+        code: 404,
+        msg: '分类不存在或无权限修改'
       });
     }
 
     if (category.isSystem) {
-      return res.status(403).json({
-        success: false,
-        message: '系统分类不能修改'
+      return sendResponse(res, {
+        code: 403,
+        msg: '系统分类不能修改'
       });
     }
 
@@ -116,19 +112,16 @@ exports.updateCategory = async (req, res) => {
 
     await category.save();
 
-    res.json({
-      success: true,
-      message: '更新成功',
-      data: {
-        category
-      }
+    return sendResponse(res, {
+      code: 200,
+      msg: '更新成功',
+      data: { category }
     });
   } catch (error) {
     console.error('更新分类失败:', error);
-    res.status(500).json({
-      success: false,
-      message: '更新分类失败',
-      error: error.message
+    return sendResponse(res, {
+      code: 500,
+      msg: '更新分类失败'
     });
   }
 };
@@ -144,31 +137,30 @@ exports.deleteCategory = async (req, res) => {
     });
 
     if (!category) {
-      return res.status(404).json({
-        success: false,
-        message: '分类不存在或无权限删除'
+      return sendResponse(res, {
+        code: 404,
+        msg: '分类不存在或无权限删除'
       });
     }
 
     if (category.isSystem) {
-      return res.status(403).json({
-        success: false,
-        message: '系统分类不能删除'
+      return sendResponse(res, {
+        code: 403,
+        msg: '系统分类不能删除'
       });
     }
 
     await category.destroy();
 
-    res.json({
-      success: true,
-      message: '删除成功'
+    return sendResponse(res, {
+      code: 200,
+      msg: '删除成功'
     });
   } catch (error) {
     console.error('删除分类失败:', error);
-    res.status(500).json({
-      success: false,
-      message: '删除分类失败',
-      error: error.message
+    return sendResponse(res, {
+      code: 500,
+      msg: '删除分类失败'
     });
   }
 };

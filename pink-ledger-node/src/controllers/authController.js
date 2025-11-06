@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { User } = require('../models');
+const sendResponse = require('../utils/response');
 
 // 生成 JWT token
 const generateToken = (userId) => {
@@ -17,18 +18,18 @@ exports.register = async (req, res) => {
 
     // 验证必填字段
     if (!username || !password) {
-      return res.status(400).json({
-        success: false,
-        message: '用户名和密码不能为空'
+      return sendResponse(res, {
+        code: 400,
+        msg: '用户名和密码不能为空'
       });
     }
 
     // 检查用户名是否已存在
     const existingUser = await User.findOne({ where: { username } });
     if (existingUser) {
-      return res.status(400).json({
-        success: false,
-        message: '用户名已存在'
+      return sendResponse(res, {
+        code: 400,
+        msg: '用户名已存在'
       });
     }
 
@@ -42,9 +43,9 @@ exports.register = async (req, res) => {
     // 生成 token
     const token = generateToken(user.id);
 
-    res.status(201).json({
-      success: true,
-      message: '注册成功',
+    return sendResponse(res, {
+      code: 200,
+      msg: '注册成功',
       data: {
         user: user.toSafeObject(),
         token
@@ -52,10 +53,9 @@ exports.register = async (req, res) => {
     });
   } catch (error) {
     console.error('注册失败:', error);
-    res.status(500).json({
-      success: false,
-      message: '注册失败',
-      error: error.message
+    return sendResponse(res, {
+      code: 500,
+      msg: '注册失败'
     });
   }
 };
@@ -67,36 +67,36 @@ exports.login = async (req, res) => {
 
     // 验证必填字段
     if (!username || !password) {
-      return res.status(400).json({
-        success: false,
-        message: '用户名和密码不能为空'
+      return sendResponse(res, {
+        code: 400,
+        msg: '用户名和密码不能为空'
       });
     }
 
     // 查找用户
     const user = await User.findOne({ where: { username } });
     if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: '用户名或密码错误'
+      return sendResponse(res, {
+        code: 401,
+        msg: '用户名或密码错误'
       });
     }
 
     // 验证密码
     const isValidPassword = await user.validatePassword(password);
     if (!isValidPassword) {
-      return res.status(401).json({
-        success: false,
-        message: '用户名或密码错误'
+      return sendResponse(res, {
+        code: 401,
+        msg: '用户名或密码错误'
       });
     }
 
     // 生成 token
     const token = generateToken(user.id);
 
-    res.json({
-      success: true,
-      message: '登录成功',
+    return sendResponse(res, {
+      code: 200,
+      msg: '登录成功',
       data: {
         user: user.toSafeObject(),
         token
@@ -104,10 +104,9 @@ exports.login = async (req, res) => {
     });
   } catch (error) {
     console.error('登录失败:', error);
-    res.status(500).json({
-      success: false,
-      message: '登录失败',
-      error: error.message
+    return sendResponse(res, {
+      code: 500,
+      msg: '登录失败'
     });
   }
 };
@@ -115,18 +114,18 @@ exports.login = async (req, res) => {
 // 获取当前用户信息
 exports.getCurrentUser = async (req, res) => {
   try {
-    res.json({
-      success: true,
+    return sendResponse(res, {
+      code: 200,
+      msg: '获取成功',
       data: {
         user: req.user.toSafeObject()
       }
     });
   } catch (error) {
     console.error('获取用户信息失败:', error);
-    res.status(500).json({
-      success: false,
-      message: '获取用户信息失败',
-      error: error.message
+    return sendResponse(res, {
+      code: 500,
+      msg: '获取用户信息失败'
     });
   }
 };
@@ -142,19 +141,18 @@ exports.updateProfile = async (req, res) => {
 
     await user.save();
 
-    res.json({
-      success: true,
-      message: '更新成功',
+    return sendResponse(res, {
+      code: 200,
+      msg: '更新成功',
       data: {
         user: user.toSafeObject()
       }
     });
   } catch (error) {
     console.error('更新用户信息失败:', error);
-    res.status(500).json({
-      success: false,
-      message: '更新失败',
-      error: error.message
+    return sendResponse(res, {
+      code: 500,
+      msg: '更新失败'
     });
   }
 };

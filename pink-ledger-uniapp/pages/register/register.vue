@@ -61,7 +61,6 @@
 
 <script>
 import { register } from '@/utils/api.js'
-import { setToken, setUserInfo } from '@/utils/storage.js'
 
 export default {
   data() {
@@ -127,19 +126,15 @@ export default {
           nickname: this.form.nickname || this.form.username
         })
         
-        // 存储 token 和用户信息
-        setToken(res.data.token)
-        setUserInfo(res.data.user)
-        
         uni.showToast({
-          title: '注册成功',
+          title: '注册成功，请登录',
           icon: 'success'
         })
         
-        // 跳转到首页
+        // 跳转到登录页面
         setTimeout(() => {
-          uni.switchTab({
-            url: '/pages/index/index'
+          uni.redirectTo({
+            url: '/pages/login/login'
           })
         }, 1500)
       } catch (err) {

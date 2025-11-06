@@ -29,21 +29,8 @@ const request = (options = {}) => {
       header,
       timeout: options.timeout || config.timeout,
       success: (res) => {
-        // 请求成功
-        if (res.statusCode === 200) {
-          // 业务成功
-          if (res.data.success) {
-            resolve(res.data)
-          } else {
-            // 业务失败
-            uni.showToast({
-              title: res.data.message || '请求失败',
-              icon: 'none',
-              duration: 2000
-            })
-            reject(res.data)
-          }
-        } else if (res.statusCode === 401) {
+        // HTTP 401 未授权
+        if (res.statusCode === 401) {
           // 未授权，清除 token 并跳转到登录页
           removeToken()
           removeUserInfo()
@@ -58,10 +45,24 @@ const request = (options = {}) => {
             })
           }, 2000)
           reject(res.data)
+        } else if (res.statusCode === 200) {
+          // HTTP 200 成功，检查业务 code
+          if (res.data.code === 200) {
+            // 业务成功
+            resolve(res.data)
+          } else {
+            // 业务失败
+            uni.showToast({
+              title: res.data.msg || '请求失败',
+              icon: 'none',
+              duration: 2000
+            })
+            reject(res.data)
+          }
         } else {
-          // 其他错误
+          // 其他 HTTP 错误
           uni.showToast({
-            title: res.data.message || '请求失败',
+            title: res.data.msg || '请求失败',
             icon: 'none',
             duration: 2000
           })

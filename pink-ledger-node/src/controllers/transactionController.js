@@ -1,6 +1,7 @@
 const { Transaction, Category } = require('../models');
 const { Op } = require('sequelize');
 const sequelize = require('sequelize');
+const sendResponse = require('../utils/response');
 
 // 获取账单列表
 exports.getTransactions = async (req, res) => {
@@ -59,8 +60,9 @@ exports.getTransactions = async (req, res) => {
       offset: parseInt(offset)
     });
 
-    res.json({
-      success: true,
+    return sendResponse(res, {
+      code: 200,
+      msg: '获取成功',
       data: {
         transactions,
         pagination: {
@@ -73,10 +75,9 @@ exports.getTransactions = async (req, res) => {
     });
   } catch (error) {
     console.error('获取账单列表失败:', error);
-    res.status(500).json({
-      success: false,
-      message: '获取账单列表失败',
-      error: error.message
+    return sendResponse(res, {
+      code: 500,
+      msg: '获取账单列表失败'
     });
   }
 };
@@ -99,24 +100,22 @@ exports.getTransaction = async (req, res) => {
     });
 
     if (!transaction) {
-      return res.status(404).json({
-        success: false,
-        message: '账单不存在'
+      return sendResponse(res, {
+        code: 404,
+        msg: '账单不存在'
       });
     }
 
-    res.json({
-      success: true,
-      data: {
-        transaction
-      }
+    return sendResponse(res, {
+      code: 200,
+      msg: '获取成功',
+      data: { transaction }
     });
   } catch (error) {
     console.error('获取账单详情失败:', error);
-    res.status(500).json({
-      success: false,
-      message: '获取账单详情失败',
-      error: error.message
+    return sendResponse(res, {
+      code: 500,
+      msg: '获取账单详情失败'
     });
   }
 };
@@ -129,34 +128,34 @@ exports.createTransaction = async (req, res) => {
 
     // 验证必填字段
     if (!categoryId || !type || !amount) {
-      return res.status(400).json({
-        success: false,
-        message: '分类、类型和金额不能为空'
+      return sendResponse(res, {
+        code: 400,
+        msg: '分类、类型和金额不能为空'
       });
     }
 
     // 验证类型
     if (!['income', 'expense'].includes(type)) {
-      return res.status(400).json({
-        success: false,
-        message: '类型必须是 income 或 expense'
+      return sendResponse(res, {
+        code: 400,
+        msg: '类型必须是 income 或 expense'
       });
     }
 
     // 验证金额
     if (parseFloat(amount) <= 0) {
-      return res.status(400).json({
-        success: false,
-        message: '金额必须大于0'
+      return sendResponse(res, {
+        code: 400,
+        msg: '金额必须大于0'
       });
     }
 
     // 验证分类是否存在
     const category = await Category.findByPk(categoryId);
     if (!category) {
-      return res.status(404).json({
-        success: false,
-        message: '分类不存在'
+      return sendResponse(res, {
+        code: 404,
+        msg: '分类不存在'
       });
     }
 
@@ -181,19 +180,18 @@ exports.createTransaction = async (req, res) => {
       ]
     });
 
-    res.status(201).json({
-      success: true,
-      message: '创建成功',
+    return sendResponse(res, {
+      code: 200,
+      msg: '创建成功',
       data: {
         transaction: fullTransaction
       }
     });
   } catch (error) {
     console.error('创建账单失败:', error);
-    res.status(500).json({
-      success: false,
-      message: '创建账单失败',
-      error: error.message
+    return sendResponse(res, {
+      code: 500,
+      msg: '创建账单失败'
     });
   }
 };
@@ -210,9 +208,9 @@ exports.updateTransaction = async (req, res) => {
     });
 
     if (!transaction) {
-      return res.status(404).json({
-        success: false,
-        message: '账单不存在'
+      return sendResponse(res, {
+        code: 404,
+        msg: '账单不存在'
       });
     }
 
@@ -220,9 +218,9 @@ exports.updateTransaction = async (req, res) => {
     if (categoryId && categoryId !== transaction.categoryId) {
       const category = await Category.findByPk(categoryId);
       if (!category) {
-        return res.status(404).json({
-          success: false,
-          message: '分类不存在'
+        return sendResponse(res, {
+          code: 404,
+          msg: '分类不存在'
         });
       }
       transaction.categoryId = categoryId;
@@ -258,19 +256,18 @@ exports.updateTransaction = async (req, res) => {
       ]
     });
 
-    res.json({
-      success: true,
-      message: '更新成功',
+    return sendResponse(res, {
+      code: 200,
+      msg: '更新成功',
       data: {
         transaction: fullTransaction
       }
     });
   } catch (error) {
     console.error('更新账单失败:', error);
-    res.status(500).json({
-      success: false,
-      message: '更新账单失败',
-      error: error.message
+    return sendResponse(res, {
+      code: 500,
+      msg: '更新账单失败'
     });
   }
 };
@@ -286,24 +283,23 @@ exports.deleteTransaction = async (req, res) => {
     });
 
     if (!transaction) {
-      return res.status(404).json({
-        success: false,
-        message: '账单不存在'
+      return sendResponse(res, {
+        code: 404,
+        msg: '账单不存在'
       });
     }
 
     await transaction.destroy();
 
-    res.json({
-      success: true,
-      message: '删除成功'
+    return sendResponse(res, {
+      code: 200,
+      msg: '删除成功'
     });
   } catch (error) {
     console.error('删除账单失败:', error);
-    res.status(500).json({
-      success: false,
-      message: '删除账单失败',
-      error: error.message
+    return sendResponse(res, {
+      code: 500,
+      msg: '删除账单失败'
     });
   }
 };
@@ -358,8 +354,9 @@ exports.getStatistics = async (req, res) => {
     const totalIncome = summary.find(s => s.type === 'income')?.total || 0;
     const totalExpense = summary.find(s => s.type === 'expense')?.total || 0;
 
-    res.json({
-      success: true,
+    return sendResponse(res, {
+      code: 200,
+      msg: '获取成功',
       data: {
         summary: {
           totalIncome: parseFloat(totalIncome),
@@ -371,10 +368,9 @@ exports.getStatistics = async (req, res) => {
     });
   } catch (error) {
     console.error('获取统计数据失败:', error);
-    res.status(500).json({
-      success: false,
-      message: '获取统计数据失败',
-      error: error.message
+    return sendResponse(res, {
+      code: 500,
+      msg: '获取统计数据失败'
     });
   }
 };
