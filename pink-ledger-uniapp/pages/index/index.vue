@@ -142,6 +142,7 @@ import { ref, computed } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 import { useAuth } from '@/composables/useAuth.js'
 import { useTransactions } from '@/composables/useTransactions.js'
+import { useTheme } from '@/composables/useTheme.js'
 
 // 使用组合式函数
 const { isLoggedIn } = useAuth()
@@ -153,6 +154,7 @@ const {
   refreshData,
   loadMore: loadMoreTransactions
 } = useTransactions()
+const { themeColors } = useTheme()
 
 // 本页面特有的响应式数据
 const filterType = ref('all') // all, expense, income
@@ -328,7 +330,7 @@ onShow(() => {
 
 /* 头部统计卡片 */
 .header-card {
-  background: linear-gradient(135deg, #FF9A9E 0%, #FAD0C4 100%);
+  background: v-bind('themeColors.gradient');
   padding: 60rpx 40rpx 40rpx;
   border-radius: 0 0 20rpx 20rpx;
 }
@@ -468,7 +470,7 @@ onShow(() => {
 }
 
 .picker-btn.confirm {
-  color: #FF6B6B;
+  color: v-bind('themeColors.text');
   font-weight: bold;
 }
 
@@ -492,7 +494,7 @@ onShow(() => {
 }
 
 .filter-item.active {
-  background: linear-gradient(135deg, #FF9A9E 0%, #FAD0C4 100%);
+  background: v-bind('themeColors.gradient');
   color: #fff;
   font-weight: bold;
 }
@@ -660,12 +662,12 @@ onShow(() => {
   bottom: 120rpx;
   width: 120rpx;
   height: 120rpx;
-  background: linear-gradient(135deg, #FF9A9E 0%, #FAD0C4 100%);
+  background: v-bind('themeColors.gradient');
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 10rpx 30rpx rgba(255, 154, 158, 0.5);
+  box-shadow: 0 10rpx 30rpx v-bind('themeColors.shadow');
 }
 
 .add-icon {

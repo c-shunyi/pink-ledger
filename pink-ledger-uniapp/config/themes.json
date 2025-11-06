@@ -1,0 +1,76 @@
+{
+  "themes": [
+    {
+      "id": "pink",
+      "name": "粉色",
+      "icon": "🌸",
+      "colors": {
+        "primary": "#FF9A9E",
+        "secondary": "#FAD0C4",
+        "gradient": "linear-gradient(135deg, #FF9A9E 0%, #FAD0C4 100%)",
+        "gradientReverse": "linear-gradient(135deg, #FAD0C4 0%, #FF9A9E 100%)",
+        "text": "#FF6B6B",
+        "light": "#FFE5E5",
+        "shadow": "rgba(255, 154, 158, 0.5)"
+      }
+    },
+    {
+      "id": "cyan",
+      "name": "青色",
+      "icon": "🌊",
+      "colors": {
+        "primary": "#4ECDC4",
+        "secondary": "#44A08D",
+        "gradient": "linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%)",
+        "gradientReverse": "linear-gradient(135deg, #44A08D 0%, #4ECDC4 100%)",
+        "text": "#2D9CDB",
+        "light": "#E0F7FA",
+        "shadow": "rgba(78, 205, 196, 0.5)"
+      }
+    },
+    {
+      "id": "purple",
+      "name": "紫色",
+      "icon": "🦄",
+      "colors": {
+        "primary": "#A890FE",
+        "secondary": "#C9B6FF",
+        "gradient": "linear-gradient(135deg, #A890FE 0%, #C9B6FF 100%)",
+        "gradientReverse": "linear-gradient(135deg, #C9B6FF 0%, #A890FE 100%)",
+        "text": "#8B7FE8",
+        "light": "#F0EBFF",
+        "shadow": "rgba(168, 144, 254, 0.5)"
+      }
+    },
+    {
+      "id": "orange",
+      "name": "橙色",
+      "icon": "🍊",
+      "colors": {
+        "primary": "#FFB347",
+        "secondary": "#FFCC80",
+        "gradient": "linear-gradient(135deg, #FFB347 0%, #FFCC80 100%)",
+        "gradientReverse": "linear-gradient(135deg, #FFCC80 0%, #FFB347 100%)",
+        "text": "#FF9800",
+        "light": "#FFF3E0",
+        "shadow": "rgba(255, 179, 71, 0.5)"
+      }
+    },
+    {
+      "id": "green",
+      "name": "绿色",
+      "icon": "🍀",
+      "colors": {
+        "primary": "#56CCF2",
+        "secondary": "#2F80ED",
+        "gradient": "linear-gradient(135deg, #56CCF2 0%, #2F80ED 100%)",
+        "gradientReverse": "linear-gradient(135deg, #2F80ED 0%, #56CCF2 100%)",
+        "text": "#27AE60",
+        "light": "#E8F5E9",
+        "shadow": "rgba(86, 204, 242, 0.5)"
+      }
+    }
+  ],
+  "default": "pink"
+}
+

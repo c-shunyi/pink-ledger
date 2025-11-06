@@ -43,6 +43,10 @@ import { ref, reactive } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { login } from '@/utils/api.js'
 import { setToken, setUserInfo, getToken, getUserInfo } from '@/utils/storage.js'
+import { useTheme } from '@/composables/useTheme.js'
+
+// 使用主题
+const { themeColors } = useTheme()
 
 // 响应式数据
 const form = reactive({
@@ -143,7 +147,7 @@ onLoad(() => {
 <style scoped>
 .login-container {
   height: 100vh;
-  background: linear-gradient(135deg, #FF9A9E 0%, #FAD0C4 100%);
+  background: v-bind('themeColors.gradient');
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -209,7 +213,7 @@ onLoad(() => {
 .login-btn {
   width: 100%;
   height: 90rpx;
-  background: linear-gradient(135deg, #FF9A9E 0%, #FAD0C4 100%);
+  background: v-bind('themeColors.gradient');
   color: #fff;
   border: none;
   border-radius: 45rpx;
@@ -230,7 +234,7 @@ onLoad(() => {
 
 .link {
   font-size: 26rpx;
-  color: #FF9A9E;
+  color: v-bind('themeColors.primary');
 }
 </style>
 

@@ -26,12 +26,48 @@
         <text class="menu-arrow">›</text>
       </view>
       
+      <view class="menu-item" @click="showThemeSelector">
+        <view class="menu-left">
+          <text class="menu-icon">🎨</text>
+          <text class="menu-text">主题设置</text>
+        </view>
+        <view class="menu-right">
+          <text class="current-theme">{{ currentTheme.name }} {{ currentTheme.icon }}</text>
+          <text class="menu-arrow">›</text>
+        </view>
+      </view>
+      
       <view class="menu-item" @click="showAbout">
         <view class="menu-left">
           <text class="menu-icon">ℹ️</text>
           <text class="menu-text">关于我们</text>
         </view>
         <text class="menu-arrow">›</text>
+      </view>
+    </view>
+    
+    <!-- 主题选择弹窗 -->
+    <view v-if="showThemeModal" class="theme-modal-overlay" @click="showThemeModal = false">
+      <view class="theme-modal" @click.stop>
+        <view class="theme-modal-header">
+          <text class="theme-modal-title">选择主题</text>
+          <text class="theme-modal-close" @click="showThemeModal = false">✕</text>
+        </view>
+        <view class="theme-list">
+          <view 
+            v-for="theme in availableThemes" 
+            :key="theme.id"
+            class="theme-item"
+            :class="{ active: currentThemeId === theme.id }"
+            @click="selectTheme(theme.id)"
+          >
+            <view class="theme-preview" :style="{ background: theme.colors.gradient }">
+              <text class="theme-icon">{{ theme.icon }}</text>
+            </view>
+            <text class="theme-name">{{ theme.name }}</text>
+            <text v-if="currentThemeId === theme.id" class="theme-check">✓</text>
+          </view>
+        </view>
       </view>
     </view>
     
@@ -46,11 +82,13 @@
 
 <script>
 import { getUserInfo, removeToken, removeUserInfo } from '@/utils/storage.js'
+import { useTheme } from '@/composables/useTheme.js'
 
 export default {
   data() {
     return {
-      userInfo: {}
+      userInfo: {},
+      showThemeModal: false
     }
   },
   computed: {
@@ -58,6 +96,17 @@ export default {
     userInitial() {
       const name = this.userInfo.nickname || this.userInfo.username || ''
       return name.charAt(0).toUpperCase()
+    }
+  },
+  setup() {
+    const { currentThemeId, currentTheme, themeColors, availableThemes, setTheme } = useTheme()
+    
+    return {
+      currentThemeId,
+      currentTheme,
+      themeColors,
+      availableThemes,
+      setTheme
     }
   },
   onLoad() {
@@ -87,6 +136,17 @@ export default {
       uni.navigateTo({
         url: '/pages/category/category'
       })
+    },
+    
+    // 显示主题选择器
+    showThemeSelector() {
+      this.showThemeModal = true
+    },
+    
+    // 选择主题
+    selectTheme(themeId) {
+      this.setTheme(themeId)
+      this.showThemeModal = false
     },
     
     // 关于我们
@@ -127,7 +187,7 @@ export default {
 
 /* 用户信息卡片 */
 .user-card {
-  background: linear-gradient(135deg, #FF9A9E 0%, #FAD0C4 100%);
+  background: v-bind('themeColors.gradient');
   padding: 60rpx 40rpx;
   display: flex;
   justify-content: space-between;
@@ -218,6 +278,17 @@ export default {
   color: #333;
 }
 
+.menu-right {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.current-theme {
+  font-size: 26rpx;
+  color: #666;
+}
+
 .menu-arrow {
   font-size: 50rpx;
   color: #ccc;
@@ -232,10 +303,107 @@ export default {
   width: 100%;
   height: 90rpx;
   background: #fff;
-  color: #FF6B6B;
-  border: 2rpx solid #FF6B6B;
+  color: v-bind('themeColors.text');
+  border: 2rpx solid v-bind('themeColors.text');
   border-radius: 45rpx;
   font-size: 32rpx;
+  font-weight: bold;
+}
+
+/* 主题选择弹窗 */
+.theme-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.theme-modal {
+  background: #fff;
+  border-radius: 20rpx;
+  width: 600rpx;
+  max-height: 70vh;
+  overflow: hidden;
+}
+
+.theme-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30rpx;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.theme-modal-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.theme-modal-close {
+  font-size: 36rpx;
+  color: #999;
+  width: 50rpx;
+  height: 50rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #f5f5f5;
+}
+
+.theme-list {
+  padding: 20rpx;
+  max-height: 500rpx;
+  overflow-y: auto;
+}
+
+.theme-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx;
+  border-radius: 15rpx;
+  margin-bottom: 15rpx;
+  background: #f8f8f8;
+  position: relative;
+  transition: all 0.3s;
+}
+
+.theme-item.active {
+  background: #fff;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.1);
+}
+
+.theme-preview {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 20rpx;
+}
+
+.theme-icon {
+  font-size: 40rpx;
+}
+
+.theme-name {
+  flex: 1;
+  font-size: 30rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+.theme-check {
+  font-size: 36rpx;
+  color: #4cd964;
   font-weight: bold;
 }
 </style>

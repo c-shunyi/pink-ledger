@@ -61,8 +61,15 @@
 
 <script>
 import { register } from '@/utils/api.js'
+import { useTheme } from '@/composables/useTheme.js'
 
 export default {
+  setup() {
+    const { themeColors } = useTheme()
+    return {
+      themeColors
+    }
+  },
   data() {
     return {
       form: {
@@ -155,7 +162,7 @@ export default {
 <style scoped>
 .register-container {
   height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: v-bind('themeColors.gradient');
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -221,7 +228,7 @@ export default {
 .register-btn {
   width: 100%;
   height: 80rpx;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: v-bind('themeColors.gradient');
   color: #fff;
   border: none;
   border-radius: 40rpx;
@@ -242,7 +249,7 @@ export default {
 
 .link {
   font-size: 26rpx;
-  color: #667eea;
+  color: v-bind('themeColors.primary');
 }
 </style>
 

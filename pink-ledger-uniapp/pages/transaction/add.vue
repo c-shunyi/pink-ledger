@@ -107,12 +107,14 @@ import { ref, reactive, computed, watch } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { useCategories } from '@/composables/useCategories.js'
 import { useTransactions } from '@/composables/useTransactions.js'
+import { useTheme } from '@/composables/useTheme.js'
 import { getToday } from '@/utils/date.js'
 import config from '@/config/index.js'
 
 // 使用组合式函数
 const { categories, loadCategories } = useCategories()
 const { addTransaction } = useTransactions()
+const { themeColors } = useTheme()
 
 // 表单数据
 const form = reactive({
@@ -260,7 +262,7 @@ onLoad(() => {
 }
 
 .type-tab.active {
-  background: linear-gradient(135deg, #FF9A9E 0%, #FAD0C4 100%);
+  background: v-bind('themeColors.gradient');
 }
 
 .tab-text {
@@ -328,7 +330,7 @@ onLoad(() => {
 }
 
 .category-item.active .category-icon {
-  background: linear-gradient(135deg, #FF9A9E 0%, #FAD0C4 100%);
+  background: v-bind('themeColors.gradient');
   transform: scale(1.1);
 }
 
@@ -352,7 +354,7 @@ onLoad(() => {
 }
 
 .category-item.active .category-name {
-  color: #FF9A9E;
+  color: v-bind('themeColors.primary');
   font-weight: bold;
 }
 
@@ -406,7 +408,7 @@ onLoad(() => {
 .submit-btn {
   width: 100%;
   height: 90rpx;
-  background: linear-gradient(135deg, #FF9A9E 0%, #FAD0C4 100%);
+  background: v-bind('themeColors.gradient');
   color: #fff;
   border: none;
   border-radius: 45rpx;
