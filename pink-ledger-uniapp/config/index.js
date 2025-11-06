@@ -1,7 +1,7 @@
 // 配置文件
 export default {
   // API 基础地址
-  baseUrl: 'http://localhost:3000/api',
+  baseUrl: 'https://pink-ledger.shunyi.website/api',
   
   // 请求超时时间
   timeout: 10000,
