@@ -269,7 +269,6 @@ const handleShowModal = () => {
 .type-label {
   font-size: 28rpx;
   color: rgba(255, 255, 255, 0.9);
-  margin-bottom: 20rpx;
 }
 
 .amount {

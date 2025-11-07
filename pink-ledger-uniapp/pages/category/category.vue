@@ -2,6 +2,9 @@
   <view class="container">
     <!-- 类型切换 -->
     <view class="type-tabs">
+      <!-- 滑块背景 -->
+      <view class="tab-slider" :class="{ 'slide-right': currentType === 'income' }"></view>
+      
       <view 
         class="type-tab" 
         :class="{ active: currentType === 'expense' }"
@@ -19,40 +22,52 @@
     </view>
     
     <!-- 分类列表 -->
-    <view class="category-list">
-      <view 
-        v-for="category in filteredCategories" 
-        :key="category.id"
-        class="category-item"
-      >
-        <view class="category-info">
-          <text class="category-icon" :style="{ background: category.color || '#F5F5F5' }">
-            {{ category.icon }}
-          </text>
-          <view class="category-text">
-            <text class="category-name">{{ category.name }}</text>
-            <text class="category-tag" v-if="category.isSystem">系统</text>
-            <text class="category-tag custom" v-else>自定义</text>
+    <scroll-view 
+      class="category-list" 
+      scroll-y 
+      :show-scrollbar="false"
+    >
+      <view class="category-list-content" :class="{ 'content-show': showContent }">
+        <view 
+          v-for="(category, index) in filteredCategories" 
+          :key="category.id"
+          class="category-item"
+          :class="{ 'item-show': showContent }"
+          :style="{ transitionDelay: (index * 0.05) + 's' }"
+        >
+          <view class="category-info">
+            <text class="category-icon" :style="{ background: category.color || '#F5F5F5' }">
+              {{ category.icon }}
+            </text>
+            <view class="category-text">
+              <text class="category-name">{{ category.name }}</text>
+              <text class="category-tag" v-if="category.isSystem">系统</text>
+              <text class="category-tag custom" v-else>自定义</text>
+            </view>
+          </view>
+          <view class="category-actions" v-if="!category.isSystem">
+            <view class="action-btn edit" @click="editCategory(category)">
+              <uni-icons type="compose" size="16" color="#fff"></uni-icons>
+            </view>
+            <view class="action-btn delete" @click="deleteCategory(category)">
+              <uni-icons type="trash" size="16" color="#FF6B6B"></uni-icons>
+            </view>
           </view>
         </view>
-        <view class="category-actions" v-if="!category.isSystem">
-          <button class="action-btn edit" @click="editCategory(category)">
-            编辑
-          </button>
-          <button class="action-btn delete" @click="deleteCategory(category)">
-            删除
-          </button>
+        
+        <view 
+          v-if="filteredCategories.length === 0" 
+          class="empty"
+          :class="{ 'item-show': showContent }"
+        >
+          <text>暂无分类</text>
         </view>
       </view>
-      
-      <view v-if="filteredCategories.length === 0" class="empty">
-        <text>暂无分类</text>
-      </view>
-    </view>
+    </scroll-view>
     
     <!-- 添加按钮 -->
     <view class="add-btn" @click="addCategory">
-      <text class="add-icon">+</text>
+      <uni-icons type="plusempty" size="40" color="#fff"></uni-icons>
     </view>
   </view>
 </template>
@@ -64,7 +79,8 @@ export default {
   data() {
     return {
       currentType: 'expense',
-      categories: []
+      categories: [],
+      showContent: false
     }
   },
   computed: {
@@ -74,6 +90,12 @@ export default {
   },
   onLoad() {
     this.loadCategories()
+  },
+  onReady() {
+    // 延迟触发动画，让页面有下拉效果
+    setTimeout(() => {
+      this.showContent = true
+    }, 300)
   },
   onShow() {
     this.loadCategories()
@@ -91,7 +113,20 @@ export default {
     
     // 切换类型
     changeType(type) {
-      this.currentType = type
+      if (this.currentType === type) return
+      
+      // 先隐藏内容
+      this.showContent = false
+      
+      // 等待动画结束后切换类型
+      setTimeout(() => {
+        this.currentType = type
+        
+        // 延迟显示新内容，触发下拉动画
+        setTimeout(() => {
+          this.showContent = true
+        }, 50)
+      }, 100)
     },
     
     // 添加分类
@@ -135,17 +170,39 @@ export default {
 
 <style scoped>
 .container {
-  min-height: 100vh;
+  height: 100vh;
   background: #F5F5F5;
-  padding-bottom: 120rpx;
 }
 
 /* 类型切换 */
 .type-tabs {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
   display: flex;
   background: #fff;
   padding: 20rpx;
-  margin-bottom: 20rpx;
+  z-index: 100;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+/* 滑块背景 */
+.tab-slider {
+  position: absolute;
+  top: 20rpx;
+  left: 20rpx;
+  right: 50%;
+  height: calc(100% - 40rpx);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 15rpx;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1;
+}
+
+.tab-slider.slide-right {
+  left: 50%;
+  right: 20rpx;
 }
 
 .type-tab {
@@ -156,17 +213,35 @@ export default {
   color: #666;
   border-radius: 15rpx;
   transition: all 0.3s;
+  position: relative;
+  z-index: 2;
 }
 
 .type-tab.active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: #fff;
   font-weight: bold;
 }
 
 /* 分类列表 */
 .category-list {
-  padding: 0 20rpx;
+  position: fixed;
+  top: 110rpx;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.category-list-content {
+  padding: 20rpx;
+  padding-bottom: 240rpx;
+  transform: translateY(-50rpx);
+  opacity: 0;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.category-list-content.content-show {
+  transform: translateY(0);
+  opacity: 1;
 }
 
 .category-item {
@@ -177,6 +252,14 @@ export default {
   padding: 30rpx;
   border-radius: 20rpx;
   margin-bottom: 15rpx;
+  transform: translateY(-100rpx);
+  opacity: 0;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.category-item.item-show {
+  transform: translateY(0);
+  opacity: 1;
 }
 
 .category-info {
@@ -231,6 +314,9 @@ export default {
   border: none;
   border-radius: 10rpx;
   font-size: 24rpx;
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
 }
 
 .action-btn.edit {
@@ -249,13 +335,21 @@ export default {
   padding: 150rpx 0;
   font-size: 28rpx;
   color: #999;
+  transform: translateY(-30rpx);
+  opacity: 0;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.empty.item-show {
+  transform: translateY(0);
+  opacity: 1;
 }
 
 /* 添加按钮 */
 .add-btn {
   position: fixed;
   right: 40rpx;
-  bottom: 40rpx;
+  bottom: 120rpx;
   width: 120rpx;
   height: 120rpx;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -264,12 +358,6 @@ export default {
   align-items: center;
   justify-content: center;
   box-shadow: 0 10rpx 30rpx rgba(102, 126, 234, 0.5);
-}
-
-.add-icon {
-  font-size: 60rpx;
-  color: #fff;
-  font-weight: bold;
 }
 </style>
 
