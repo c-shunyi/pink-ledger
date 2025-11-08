@@ -14,6 +14,7 @@
 ## 功能特性
 
 - ✅ 用户注册与登录
+- ✅ 微信一键登录（小程序）
 - ✅ JWT 身份认证
 - ✅ 账单管理（增删改查）
 - ✅ 分类管理（支持系统分类和自定义分类）
@@ -31,15 +32,28 @@ pnpm install
 
 ### 2. 配置环境变量
 
-创建 `.env` 文件（或使用默认配置）：
+复制 `.env.example` 文件并重命名为 `.env`，然后根据实际情况修改配置：
 
-```env
-PORT=3000
-NODE_ENV=development
-JWT_SECRET=your_jwt_secret_key_change_this_in_production
-JWT_EXPIRES_IN=7d
-DB_PATH=./database.sqlite
+```bash
+# 复制环境变量模板
+cp .env.example .env
+
+# 编辑配置文件
+vim .env  # 或使用其他编辑器
 ```
+
+**必须配置的项：**
+- `JWT_SECRET`: JWT 密钥（生产环境请修改为强密码）
+- `WECHAT_APPID`: 微信小程序 AppID
+- `WECHAT_APP_SECRET`: 微信小程序 AppSecret
+
+**微信登录配置说明：**
+1. 登录 [微信公众平台](https://mp.weixin.qq.com/)
+2. 进入你的小程序
+3. 在「开发」->「开发管理」->「开发设置」中找到：
+   - **AppID**（小程序ID）
+   - **AppSecret**（小程序密钥，生成时需管理员扫码）
+4. 将获取到的 AppID 和 AppSecret 填入 `.env` 文件
 
 ### 3. 初始化数据库
 
@@ -136,6 +150,18 @@ Content-Type: application/json
 {
   "nickname": "新昵称",
   "avatar": "头像URL"
+}
+```
+
+#### 微信一键登录
+```
+POST /api/auth/wechat-login
+Content-Type: application/json
+
+{
+  "code": "微信登录凭证code",
+  "nickname": "用户昵称（可选）",
+  "avatar": "头像URL（可选）"
 }
 ```
 
@@ -257,10 +283,13 @@ GET /api/health
 
 ### User（用户）
 - id: 主键
-- username: 用户名（唯一）
-- password: 密码（加密）
+- username: 用户名（唯一，可为空）
+- password: 密码（加密，可为空）
 - nickname: 昵称
 - avatar: 头像
+- wechat_openid: 微信小程序 openid（唯一）
+- wechat_unionid: 微信 unionid
+- wechat_session_key: 微信会话密钥
 - createdAt: 创建时间
 - updatedAt: 更新时间
 
@@ -343,16 +372,34 @@ pink-ledger-node/
 └── README.md
 ```
 
+## 数据库迁移
+
+如果你已有现有数据库，需要支持微信登录功能，请执行以下迁移脚本：
+
+```bash
+# 添加微信登录字段
+node scripts/migrate-add-wechat-fields.js
+```
+
+此脚本会：
+- ✅ 添加微信登录相关字段（wechat_openid、wechat_unionid、wechat_session_key）
+- ✅ 将 username 和 password 改为可空（支持纯微信登录用户）
+- ✅ 保留所有现有用户数据
+
+**注意：** 新建项目不需要执行此脚本，直接运行 `init-database.js` 即可。
+
 ## 注意事项
 
 1. **首次运行必须先执行数据库初始化脚本** `node scripts/init-database.js`
    - 脚本会检查数据库是否已存在
    - 如已存在会自动停止，避免误操作
-2. 请在生产环境中修改 `JWT_SECRET` 为安全的密钥
-3. 系统分类不可被修改或删除
-4. 删除分类前需确保没有关联的账单记录
-5. 所有接口（除注册和登录）都需要 JWT 认证
-6. SQLite 数据库文件位置由 `DB_PATH` 环境变量指定
+2. **如需添加微信登录功能到现有数据库**，请运行 `node scripts/migrate-add-wechat-fields.js`
+3. 请在生产环境中修改 `JWT_SECRET` 为安全的密钥
+4. 微信登录需要配置 `WECHAT_APPID` 和 `WECHAT_APP_SECRET` 环境变量
+5. 系统分类不可被修改或删除
+6. 删除分类前需确保没有关联的账单记录
+7. 所有接口（除注册、登录和微信登录）都需要 JWT 认证
+8. SQLite 数据库文件位置由 `DB_PATH` 环境变量指定
 
 ## 开发建议
 

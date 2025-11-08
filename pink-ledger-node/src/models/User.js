@@ -10,7 +10,7 @@ module.exports = (sequelize) => {
     },
     username: {
       type: DataTypes.STRING(50),
-      allowNull: false,
+      allowNull: true,
       unique: true,
       validate: {
         len: [3, 50]
@@ -18,7 +18,7 @@ module.exports = (sequelize) => {
     },
     password: {
       type: DataTypes.STRING(255),
-      allowNull: false,
+      allowNull: true,
       validate: {
         len: [6, 255]
       }
@@ -30,6 +30,23 @@ module.exports = (sequelize) => {
     avatar: {
       type: DataTypes.STRING(255),
       allowNull: true
+    },
+    // 微信登录相关字段
+    wechat_openid: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+      unique: true,
+      comment: '微信小程序 openid'
+    },
+    wechat_unionid: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+      comment: '微信 unionid'
+    },
+    wechat_session_key: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+      comment: '微信会话密钥'
     }
   }, {
     tableName: 'users',
@@ -63,6 +80,7 @@ module.exports = (sequelize) => {
       username: this.username,
       nickname: this.nickname,
       avatar: this.avatar,
+      wechat_openid: this.wechat_openid,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt
     };

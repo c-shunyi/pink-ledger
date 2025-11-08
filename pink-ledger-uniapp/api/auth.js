@@ -41,3 +41,15 @@ export const updateProfile = (data) => {
   return put('/auth/profile', data)
 }
 
+/**
+ * 微信一键登录
+ * @param {Object} data - 微信登录数据
+ * @param {string} data.code - 微信登录凭证
+ * @param {string} data.nickname - 用户昵称
+ * @param {string} data.avatar - 用户头像
+ * @returns {Promise}
+ */
+export const wechatLogin = (data) => {
+  return post('/auth/wechat-login', data)
+}
+

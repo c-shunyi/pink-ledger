@@ -6,42 +6,29 @@
     </view>
     
     <view class="form-container">
-      <view class="form-item">
-        <text class="label">用户名</text>
-        <input 
-          class="input" 
-          v-model="form.username" 
-          placeholder="请输入用户名"
-          placeholder-class="placeholder"
-        />
-      </view>
-      
-      <view class="form-item">
-        <text class="label">密码</text>
-        <input 
-          class="input" 
-          v-model="form.password" 
-          type="password"
-          placeholder="请输入密码"
-          placeholder-class="placeholder"
-        />
-      </view>
-      
-      <button class="login-btn" @click="handleLogin" :loading="loading">
-        登录
+      <button class="wechat-login-btn" @click="handleWechatLogin" :loading="wechatLoading">
+        <text>微信一键登录</text>
       </button>
       
-      <view class="footer-links">
-        <text class="link" @click="goToRegister">还没有账号？立即注册</text>
+      <view class="agreement">
+        <checkbox-group @change="handleAgreementChange">
+          <label class="agreement-label">
+            <checkbox :checked="agreedToTerms" color="#07C160" />
+            <text class="agreement-text">我已阅读并同意</text>
+            <text class="agreement-link">《服务协议》</text>
+            <text class="agreement-text">和</text>
+            <text class="agreement-link">《隐私政策》</text>
+          </label>
+        </checkbox-group>
       </view>
     </view>
   </view>
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { login } from '@/api'
+import { wechatLogin } from '@/api'
 import { setToken, setUserInfo, getToken, getUserInfo } from '@/utils/storage.js'
 import { useTheme } from '@/composables/useTheme.js'
 
@@ -49,11 +36,8 @@ import { useTheme } from '@/composables/useTheme.js'
 const { themeColors } = useTheme()
 
 // 响应式数据
-const form = reactive({
-  username: '',
-  password: ''
-})
-const loading = ref(false)
+const wechatLoading = ref(false)
+const agreedToTerms = ref(false)
 
 // 检查自动登录
 const checkAutoLogin = () => {
@@ -77,64 +61,101 @@ const checkAutoLogin = () => {
   }
 }
 
-// 登录
-const handleLogin = async () => {
-  // 表单验证
-  if (!form.username) {
+// 处理协议勾选
+const handleAgreementChange = (e) => {
+  agreedToTerms.value = e.detail.value.length > 0
+}
+
+// 微信一键登录
+const handleWechatLogin = async () => {
+  // 检查是否同意协议
+  if (!agreedToTerms.value) {
     uni.showToast({
-      title: '请输入用户名',
-      icon: 'none'
-    })
-    return
-  }
-  
-  if (!form.password) {
-    uni.showToast({
-      title: '请输入密码',
-      icon: 'none'
-    })
-    return
-  }
-  
-  if (form.password.length < 6) {
-    uni.showToast({
-      title: '密码长度不能少于6位',
-      icon: 'none'
+      title: '请先同意服务协议和隐私政策',
+      icon: 'none',
+      duration: 2000
     })
     return
   }
   
   try {
-    loading.value = true
-    const res = await login(form)
+    wechatLoading.value = true
     
-    // 存储 token 和用户信息
-    setToken(res.data.token)
-    setUserInfo(res.data.user)
-    
-    uni.showToast({
-      title: '登录成功',
-      icon: 'success'
+    // 1. 获取微信登录凭证
+    uni.login({
+      provider: 'weixin',
+      success: async (loginRes) => {
+        console.log('微信登录结果:', loginRes)
+        
+        if (!loginRes.code) {
+          uni.showToast({
+            title: '获取微信登录凭证失败',
+            icon: 'none'
+          })
+          wechatLoading.value = false
+          return
+        }
+        
+        const code = loginRes.code
+        
+        // 2. 使用默认用户信息
+        // 注意：新版微信小程序无法直接获取头像昵称
+        // 用户可以登录后在个人中心编辑资料
+        const userInfo = {
+          nickname: '微信用户',
+          avatar: ''
+        }
+        
+        // 3. 调用后端接口进行登录
+        try {
+          const res = await wechatLogin({
+            code: code,
+            nickname: userInfo.nickname,
+            avatar: userInfo.avatar
+          })
+          
+          // 存储 token 和用户信息
+          setToken(res.data.token)
+          setUserInfo(res.data.user)
+          
+          uni.showToast({
+            title: '登录成功',
+            icon: 'success'
+          })
+          
+          // 跳转到首页
+          setTimeout(() => {
+            uni.switchTab({
+              url: '/pages/index/index'
+            })
+          }, 1500)
+        } catch (err) {
+          console.error('后端登录失败:', err)
+          uni.showToast({
+            title: err.msg || '登录失败',
+            icon: 'none'
+          })
+        } finally {
+          wechatLoading.value = false
+        }
+      },
+      fail: (err) => {
+        console.error('微信登录调用失败:', err)
+        uni.showToast({
+          title: '微信登录失败，请重试',
+          icon: 'none'
+        })
+        wechatLoading.value = false
+      }
     })
-    
-    // 跳转到首页
-    setTimeout(() => {
-      uni.switchTab({
-        url: '/pages/index/index'
-      })
-    }, 1500)
   } catch (err) {
-    console.error('登录失败:', err)
-  } finally {
-    loading.value = false
+    console.error('微信登录异常:', err)
+    uni.showToast({
+      title: '登录异常',
+      icon: 'none'
+    })
+    wechatLoading.value = false
   }
-}
-
-// 跳转到注册页
-const goToRegister = () => {
-  uni.navigateTo({
-    url: '/pages/register/register'
-  })
 }
 
 // 生命周期钩子
@@ -176,65 +197,87 @@ onLoad(() => {
 }
 
 .form-container {
-  background: #fff;
   border-radius: 30rpx;
-  padding: 50rpx 40rpx;
-  box-shadow: 0 10rpx 40rpx rgba(0, 0, 0, 0.1);
+  padding: 80rpx 50rpx;
   width: 100%;
   max-width: 600rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.form-item {
-  margin-bottom: 30rpx;
+.welcome-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 80rpx;
 }
 
-.label {
-  display: block;
-  font-size: 28rpx;
+.welcome-title {
+  font-size: 48rpx;
+  font-weight: bold;
   color: #333;
   margin-bottom: 20rpx;
-  font-weight: 500;
 }
 
-.input {
-  width: 100%;
-  height: 90rpx;
-  background: #F5F5F5;
-  border-radius: 15rpx;
-  padding: 0 30rpx;
-  font-size: 30rpx;
-  box-sizing: border-box;
-}
-
-.placeholder {
+.welcome-desc {
+  font-size: 28rpx;
   color: #999;
 }
 
-.login-btn {
-  width: 100%;
-  height: 90rpx;
-  background: v-bind('themeColors.gradient');
+.wechat-login-btn {
+  width: 500rpx;
+  height: 96rpx;
+  background: #07C160;
   color: #fff;
   border: none;
-  border-radius: 45rpx;
-  font-size: 32rpx;
+  border-radius: 48rpx;
+  font-size: 34rpx;
   font-weight: bold;
-  margin-top: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 24rpx rgba(7, 193, 96, 0.3);
+  transition: all 0.3s;
 }
 
-.login-btn[loading] {
+.wechat-login-btn[loading] {
   opacity: 0.7;
 }
 
-.footer-links {
-  display: flex;
-  justify-content: center;
-  margin-top: 30rpx;
+.wechat-icon {
+  font-size: 40rpx;
+  margin-right: 12rpx;
 }
 
-.link {
-  font-size: 26rpx;
-  color: v-bind('themeColors.primary');
+.agreement {
+  margin-top: 40rpx;
+  width: 100%;
+}
+
+.agreement-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* 调整 checkbox 大小 */
+.agreement-label checkbox {
+  transform: scale(0.7);
+}
+
+.agreement-text {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0 4rpx;
+}
+
+.agreement-link {
+  font-size: 24rpx;
+  color: #fff;
+  text-decoration: underline;
+  margin: 0 4rpx;
 }
 </style>
 
