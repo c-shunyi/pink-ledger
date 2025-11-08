@@ -159,12 +159,15 @@ exports.createTransaction = async (req, res) => {
       });
     }
 
+    // 如果没有传日期，使用当前日期（YYYY-MM-DD 格式）
+    const transactionDate = date || new Date().toISOString().split('T')[0];
+    
     const transaction = await Transaction.create({
       userId,
       categoryId,
       type,
       amount,
-      date: date || new Date(),
+      date: transactionDate,
       description
     });
 

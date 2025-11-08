@@ -7,6 +7,7 @@ const sequelize = new Sequelize({
   dialect: 'sqlite',
   storage: process.env.DB_PATH || path.join(__dirname, '../../database.sqlite'),
   logging: process.env.NODE_ENV === 'development' ? console.log : false,
+  timezone: '+00:00', // 使用 UTC 时区，避免时区问题
   define: {
     timestamps: true,
     underscored: false,
