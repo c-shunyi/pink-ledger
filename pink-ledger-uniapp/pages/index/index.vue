@@ -108,7 +108,7 @@
             class="transaction-item"
             @click="goToDetail(item.id)"
           >
-            <view class="transaction-icon">
+            <view class="transaction-icon" :style="{ background: item.category.color || '#F5F5F5' }">
               <text class="icon-text">{{ item.category.icon }}</text>
             </view>
             <view class="transaction-info">
@@ -652,8 +652,7 @@ onShow(() => {
 .transaction-icon {
   width: 80rpx;
   height: 80rpx;
-  background: #F5F5F5;
-  border-radius: 50%;
+  border-radius: 20%;
   display: flex;
   align-items: center;
   justify-content: center;

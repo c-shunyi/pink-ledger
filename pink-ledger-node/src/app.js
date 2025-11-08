@@ -4,7 +4,6 @@ const bodyParser = require('body-parser');
 require('dotenv').config();
 
 const { testConnection } = require('./config/database');
-const { syncDatabase } = require('./models');
 const routes = require('./routes');
 const { errorHandler, notFoundHandler } = require('./middlewares/errorHandler');
 
@@ -31,14 +30,11 @@ app.use(notFoundHandler);
 // 错误处理
 app.use(errorHandler);
 
-// 初始化数据库并启动服务器
+// 启动服务器
 const startServer = async () => {
   try {
     // 测试数据库连接
     await testConnection();
-
-    // 同步数据库模型
-    await syncDatabase();
 
     // 启动服务器
     app.listen(PORT, () => {
@@ -50,6 +46,9 @@ const startServer = async () => {
 ║   📍 Port: ${PORT}                                    ║
 ║   🌍 Environment: ${process.env.NODE_ENV || 'development'}            ║
 ║   📚 API Documentation: http://localhost:${PORT}/api/health  ║
+║                                                       ║
+║   ⚠️  提示: 首次运行请先执行数据库初始化脚本        ║
+║      命令: node scripts/init-database.js             ║
 ║                                                       ║
 ╚═══════════════════════════════════════════════════════╝
       `);

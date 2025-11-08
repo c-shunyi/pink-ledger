@@ -41,7 +41,9 @@
           :class="{ active: form.categoryId === category.id }"
           @click="selectCategory(category)"
         >
-          <text class="category-icon">{{ category.icon }}</text>
+          <view class="category-icon" :style="{ background: category.color || '#F5F5F5' }">
+            <text class="icon-text">{{ category.icon }}</text>
+          </view>
           <text class="category-name">{{ category.name }}</text>
         </view>
       </view>
@@ -183,18 +185,18 @@ const handleSubmit = async () => {
   
   try {
     loading.value = true
-    await addTransaction(form)
-    
-    uni.showToast({
-      title: '记账成功',
-      icon: 'success'
+    uni.showLoading({
+      title: '保存中...',
+      mask: true
     })
     
-    setTimeout(() => {
-      uni.navigateBack()
-    }, 1500)
+    await addTransaction(form)
+    
+    uni.hideLoading()
+    uni.navigateBack()
   } catch (err) {
     console.error('记账失败:', err)
+    uni.hideLoading()
   } finally {
     loading.value = false
   }
@@ -298,21 +300,23 @@ onLoad(() => {
 }
 
 .category-item.active .category-icon {
-  background: v-bind('themeColors.gradient');
-  transform: scale(1.1);
+  transform: scale(1.15);
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.15);
 }
 
 .category-icon {
   width: 80rpx;
   height: 80rpx;
-  background: #F5F5F5;
   border-radius: 20%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 40rpx;
   margin-bottom: 10rpx;
   transition: all 0.3s;
+}
+
+.icon-text {
+  font-size: 40rpx;
 }
 
 .category-name {

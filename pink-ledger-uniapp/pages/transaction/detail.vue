@@ -14,7 +14,9 @@
         <view class="info-item">
           <text class="info-label">分类</text>
           <view class="info-value">
-            <text class="category-icon">{{ transaction.category.icon }}</text>
+            <view class="category-icon-wrapper" :style="{ background: transaction.category.color || '#F5F5F5' }">
+              <text class="category-icon">{{ transaction.category.icon }}</text>
+            </view>
             <text class="category-name">{{ transaction.category.name }}</text>
           </view>
         </view>
@@ -39,13 +41,11 @@
       <view class="action-section">
         <button class="action-btn edit-btn" @click="handleShowModal">
           <view class="btn-content">
-            <uni-icons type="compose" size="20" color="#fff"></uni-icons>
             <text class="btn-text">编辑</text>
           </view>
         </button>
         <button class="action-btn delete-btn" @click="handleDelete">
           <view class="btn-content">
-            <uni-icons type="trash" size="20" color="#FF6B6B"></uni-icons>
             <text class="btn-text">删除</text>
           </view>
         </button>
@@ -94,7 +94,7 @@
             <input 
               class="edit-input" 
               v-model="editForm.description"
-              placeholder="请输入备注（可选）"
+              placeholder="请输入备注"
             />
           </view>
         </view>
@@ -209,27 +209,25 @@ const handleConfirmEdit = async () => {
 }
 
 // 删除
-const handleDelete = () => {
-  uni.showModal({
-    title: '确认删除',
-    content: '确定要删除这条账单吗？',
-    success: async (res) => {
-      if (res.confirm) {
-        try {
-          await deleteTransaction(id.value)
-          uni.showToast({
-            title: '删除成功',
-            icon: 'success'
-          })
-          setTimeout(() => {
-            uni.navigateBack()
-          }, 1500)
-        } catch (err) {
-          console.error('删除失败:', err)
-        }
-      }
-    }
-  })
+const handleDelete = async () => {
+  try {
+    uni.showLoading({
+      title: '删除中...',
+      mask: true
+    })
+    
+    await deleteTransaction(id.value)
+    
+    uni.hideLoading()
+    uni.navigateBack()
+  } catch (err) {
+    console.error('删除失败:', err)
+    uni.hideLoading()
+    uni.showToast({
+      title: '删除失败',
+      icon: 'none'
+    })
+  }
 }
 
 // 生命周期
@@ -260,10 +258,6 @@ const handleShowModal = () => {
   display: flex;
   flex-direction: column;
   align-items: center;
-}
-
-.amount-section.income {
-  background: linear-gradient(135deg, #06D6A0 0%, #26E5B0 100%);
 }
 
 .type-label {
@@ -312,9 +306,18 @@ const handleShowModal = () => {
   justify-content: flex-end;
 }
 
+.category-icon-wrapper {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 20%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 10rpx;
+}
+
 .category-icon {
   font-size: 32rpx;
-  margin-right: 10rpx;
 }
 
 .category-name {

@@ -71,13 +71,21 @@ cd pink-ledger-node
 # 安装依赖
 pnpm install
 
+# ⚠️ 重要：首次运行前需要初始化数据库
+node scripts/init-database.js
+
 # 启动开发服务器
 pnpm run dev
 ```
 
 后端服务将在 `http://localhost:3000` 启动。
 
-详细说明请查看：[后端 README](pink-ledger-node/README.md)
+**关于数据库初始化：**
+- 🔒 脚本会自动检测数据库是否已存在
+- 🚫 如已存在会自动停止，避免误操作
+- 📦 仅用于首次初始化，创建表结构并初始化系统分类
+
+详细说明请查看：[后端 README](pink-ledger-node/README.md) 或 [脚本文档](pink-ledger-node/scripts/README.md)
 
 ### 2. 配置并启动前端
 
@@ -125,7 +133,7 @@ export default {
 - 分类占比分析
 
 #### 4. 分类管理
-- 13 个系统预设分类
+- 15 个系统预设分类
 - 创建自定义分类
 - 编辑分类（名称、图标、颜色）
 - 删除自定义分类
@@ -140,6 +148,8 @@ export default {
 - 💊 医疗
 - 🏠 住房
 - 📚 学习
+- 🍭 零食
+- 🧴 日用
 - 💸 其他支出
 
 **收入分类：**
