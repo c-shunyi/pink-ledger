@@ -9,18 +9,6 @@
       <button class="wechat-login-btn" @click="handleWechatLogin" :loading="wechatLoading">
         <text>微信一键登录</text>
       </button>
-      
-      <view class="agreement">
-        <checkbox-group @change="handleAgreementChange">
-          <label class="agreement-label">
-            <checkbox :checked="agreedToTerms" color="#07C160" />
-            <text class="agreement-text">我已阅读并同意</text>
-            <text class="agreement-link">《服务协议》</text>
-            <text class="agreement-text">和</text>
-            <text class="agreement-link">《隐私政策》</text>
-          </label>
-        </checkbox-group>
-      </view>
     </view>
   </view>
 </template>
@@ -37,7 +25,6 @@ const { themeColors } = useTheme()
 
 // 响应式数据
 const wechatLoading = ref(false)
-const agreedToTerms = ref(false)
 
 // 检查自动登录
 const checkAutoLogin = () => {
@@ -61,23 +48,8 @@ const checkAutoLogin = () => {
   }
 }
 
-// 处理协议勾选
-const handleAgreementChange = (e) => {
-  agreedToTerms.value = e.detail.value.length > 0
-}
-
 // 微信一键登录
 const handleWechatLogin = async () => {
-  // 检查是否同意协议
-  if (!agreedToTerms.value) {
-    uni.showToast({
-      title: '请先同意服务协议和隐私政策',
-      icon: 'none',
-      duration: 2000
-    })
-    return
-  }
-  
   try {
     wechatLoading.value = true
     
@@ -118,17 +90,10 @@ const handleWechatLogin = async () => {
           setToken(res.data.token)
           setUserInfo(res.data.user)
           
-          uni.showToast({
-            title: '登录成功',
-            icon: 'success'
-          })
-          
           // 跳转到首页
-          setTimeout(() => {
-            uni.switchTab({
-              url: '/pages/index/index'
-            })
-          }, 1500)
+          uni.switchTab({
+            url: '/pages/index/index'
+          })
         } catch (err) {
           console.error('后端登录失败:', err)
           uni.showToast({
@@ -248,36 +213,6 @@ onLoad(() => {
 .wechat-icon {
   font-size: 40rpx;
   margin-right: 12rpx;
-}
-
-.agreement {
-  margin-top: 40rpx;
-  width: 100%;
-}
-
-.agreement-label {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-/* 调整 checkbox 大小 */
-.agreement-label checkbox {
-  transform: scale(0.7);
-}
-
-.agreement-text {
-  font-size: 24rpx;
-  color: rgba(255, 255, 255, 0.8);
-  margin: 0 4rpx;
-}
-
-.agreement-link {
-  font-size: 24rpx;
-  color: #fff;
-  text-decoration: underline;
-  margin: 0 4rpx;
 }
 </style>
 

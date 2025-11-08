@@ -1,5 +1,9 @@
 <template>
-  <view class="container">
+  <view class="container"
+    @touchstart="onTouchStart"
+    @touchmove="onTouchMove"
+    @touchend="onTouchEnd"
+  >
     <!-- 类型切换 -->
     <view class="type-tabs">
       <!-- 滑块背景 -->
@@ -82,6 +86,12 @@ const currentType = ref('expense')
 const categories = ref([])
 const showContent = ref(true)
 
+// 触摸滑动相关
+const touchStartX = ref(0)
+const touchStartY = ref(0)
+const touchMoveX = ref(0)
+const touchMoveTime = ref(0) // 节流控制
+
 // 计算属性
 const filteredCategories = computed(() => {
   return categories.value.filter(cat => cat.type === currentType.value)
@@ -95,6 +105,53 @@ const loadCategories = async () => {
   } catch (err) {
     console.error('加载分类失败:', err)
   }
+}
+
+// 触摸事件处理
+const onTouchStart = (e) => {
+  touchStartX.value = e.touches[0].clientX
+  touchStartY.value = e.touches[0].clientY
+  // 重要：初始化移动位置为起始位置，避免使用上次的残留值
+  touchMoveX.value = e.touches[0].clientX
+}
+
+const onTouchMove = (e) => {
+  // 节流：每50ms最多触发一次
+  const now = Date.now()
+  if (now - touchMoveTime.value < 50) {
+    return
+  }
+  touchMoveTime.value = now
+  touchMoveX.value = e.touches[0].clientX
+}
+
+const onTouchEnd = (e) => {
+  const deltaX = touchMoveX.value - touchStartX.value
+  const endY = e.changedTouches?.[0]?.clientY || touchStartY.value
+  const deltaY = Math.abs(endY - touchStartY.value)
+  
+  // 更严格的判断条件：
+  // 1. 水平滑动距离至少80px
+  // 2. 水平滑动距离必须是垂直滑动距离的2倍以上
+  // 3. 垂直滑动距离不能超过50px
+  if (Math.abs(deltaX) > 80 && Math.abs(deltaX) > deltaY * 2 && deltaY < 50) {
+    if (deltaX > 0) {
+      // 向右滑动，切换到支出
+      if (currentType.value === 'income') {
+        changeType('expense')
+      }
+    } else {
+      // 向左滑动，切换到收入
+      if (currentType.value === 'expense') {
+        changeType('income')
+      }
+    }
+  }
+  
+  // 重置触摸位置
+  touchStartX.value = 0
+  touchStartY.value = 0
+  touchMoveX.value = 0
 }
 
 // 切换类型
@@ -189,7 +246,7 @@ onShow(() => {
   height: calc(100% - 40rpx);
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border-radius: 15rpx;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.4s cubic-bezier(0.1, 0.7, 0.3, 0.9);
   z-index: 1;
 }
 

@@ -1,5 +1,9 @@
 <template>
-  <view class="container">
+  <view class="container"
+    @touchstart="onTouchStart"
+    @touchmove="onTouchMove"
+    @touchend="onTouchEnd"
+  >
     <!-- 头部统计卡片 -->
     <view class="header-card">
       <view class="header-content">
@@ -182,6 +186,12 @@ const previousFilterIndex = ref(0)
 // 记录是否使用旋转效果（1:1比例随机）
 const useRotateEffect = ref(false)
 
+// 触摸滑动相关
+const touchStartX = ref(0)
+const touchStartY = ref(0)
+const touchMoveX = ref(0)
+const touchMoveTime = ref(0) // 节流控制
+
 // 计算滑块位置
 const sliderStyle = computed(() => {
   const filterMap = {
@@ -308,6 +318,56 @@ const goToDetail = (id) => {
   uni.navigateTo({
     url: `/pages/transaction/detail?id=${id}`
   })
+}
+
+// 触摸事件处理
+const onTouchStart = (e) => {
+  touchStartX.value = e.touches[0].clientX
+  touchStartY.value = e.touches[0].clientY
+  // 重要：初始化移动位置为起始位置，避免使用上次的残留值
+  touchMoveX.value = e.touches[0].clientX
+}
+
+const onTouchMove = (e) => {
+  // 节流：每50ms最多触发一次
+  const now = Date.now()
+  if (now - touchMoveTime.value < 50) {
+    return
+  }
+  touchMoveTime.value = now
+  touchMoveX.value = e.touches[0].clientX
+}
+
+const onTouchEnd = (e) => {
+  const deltaX = touchMoveX.value - touchStartX.value
+  const endY = e.changedTouches?.[0]?.clientY || touchStartY.value
+  const deltaY = Math.abs(endY - touchStartY.value)
+  
+  // 更严格的判断条件：
+  // 1. 水平滑动距离至少50px
+  // 2. 水平滑动距离必须是垂直滑动距离的2倍以上
+  // 3. 垂直滑动距离不能超过50px
+  if (Math.abs(deltaX) > 50 && Math.abs(deltaX) > deltaY * 2 && deltaY < 50) {
+    const filterTypes = ['all', 'expense', 'income']
+    const currentIndex = filterTypes.indexOf(filterType.value)
+    
+    if (deltaX > 0) {
+      // 向右滑动，切换到前一个tab
+      if (currentIndex > 0) {
+        changeFilter(filterTypes[currentIndex - 1])
+      }
+    } else {
+      // 向左滑动，切换到后一个tab
+      if (currentIndex < filterTypes.length - 1) {
+        changeFilter(filterTypes[currentIndex + 1])
+      }
+    }
+  }
+  
+  // 重置触摸位置
+  touchStartX.value = 0
+  touchStartY.value = 0
+  touchMoveX.value = 0
 }
 
 // 日期选择器相关方法
@@ -558,7 +618,7 @@ onShow(() => {
   height: calc(100% - 40rpx);
   background: v-bind('themeColors.gradient');
   border-radius: 10rpx;
-  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.4s cubic-bezier(0.1, 0.7, 0.3, 0.9);
   transform-origin: center center;
   box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
   z-index: 1;
