@@ -115,90 +115,87 @@
   </view>
 </template>
 
-<script>
+<script setup>
+import { ref, reactive, computed } from 'vue'
+import { onLoad, onShow } from '@dcloudio/uni-app'
 import { getStatistics } from '@/api'
 import { getMonthStart, getMonthEnd, getYearStart, getYearEnd } from '@/utils/date.js'
 
-export default {
-  data() {
+// 响应式数据
+const timeRange = ref('month') // month, year
+const summary = reactive({
+  totalIncome: '0.00',
+  totalExpense: '0.00',
+  balance: '0.00'
+})
+const categoryStats = ref([])
+
+// 计算属性：支出统计
+const expenseStats = computed(() => {
+  return categoryStats.value
+    .filter(item => item.type === 'expense')
+    .sort((a, b) => parseFloat(b.total) - parseFloat(a.total))
+})
+
+// 计算属性：收入统计
+const incomeStats = computed(() => {
+  return categoryStats.value
+    .filter(item => item.type === 'income')
+    .sort((a, b) => parseFloat(b.total) - parseFloat(a.total))
+})
+
+// 获取日期参数
+const getDateParams = () => {
+  if (timeRange.value === 'month') {
     return {
-      timeRange: 'month', // month, year
-      summary: {
-        totalIncome: '0.00',
-        totalExpense: '0.00',
-        balance: '0.00'
-      },
-      categoryStats: []
+      startDate: getMonthStart(),
+      endDate: getMonthEnd()
     }
-  },
-  computed: {
-    // 支出统计
-    expenseStats() {
-      return this.categoryStats
-        .filter(item => item.type === 'expense')
-        .sort((a, b) => parseFloat(b.total) - parseFloat(a.total))
-    },
-    // 收入统计
-    incomeStats() {
-      return this.categoryStats
-        .filter(item => item.type === 'income')
-        .sort((a, b) => parseFloat(b.total) - parseFloat(a.total))
-    }
-  },
-  onLoad() {
-    this.loadData()
-  },
-  onShow() {
-    this.loadData()
-  },
-  methods: {
-    // 加载数据
-    async loadData() {
-      try {
-        const params = this.getDateParams()
-        const res = await getStatistics(params)
-        
-        this.summary = {
-          totalIncome: res.data.summary.totalIncome.toFixed(2),
-          totalExpense: res.data.summary.totalExpense.toFixed(2),
-          balance: res.data.summary.balance.toFixed(2)
-        }
-        
-        this.categoryStats = res.data.categoryStats
-      } catch (err) {
-        console.error('加载统计数据失败:', err)
-      }
-    },
-    
-    // 获取日期参数
-    getDateParams() {
-      if (this.timeRange === 'month') {
-        return {
-          startDate: getMonthStart(),
-          endDate: getMonthEnd()
-        }
-      } else {
-        return {
-          startDate: getYearStart(),
-          endDate: getYearEnd()
-        }
-      }
-    },
-    
-    // 切换时间范围
-    changeTimeRange(range) {
-      if (this.timeRange === range) return
-      this.timeRange = range
-      this.loadData()
-    },
-    
-    // 计算百分比
-    getPercent(value, total) {
-      if (!total || parseFloat(total) === 0) return 0
-      return ((parseFloat(value) / parseFloat(total)) * 100).toFixed(1)
+  } else {
+    return {
+      startDate: getYearStart(),
+      endDate: getYearEnd()
     }
   }
 }
+
+// 加载数据
+const loadData = async () => {
+  try {
+    const params = getDateParams()
+    const res = await getStatistics(params)
+    
+    summary.totalIncome = res.data.summary.totalIncome.toFixed(2)
+    summary.totalExpense = res.data.summary.totalExpense.toFixed(2)
+    summary.balance = res.data.summary.balance.toFixed(2)
+    
+    categoryStats.value = res.data.categoryStats
+  } catch (err) {
+    console.error('加载统计数据失败:', err)
+  }
+}
+
+// 切换时间范围
+const changeTimeRange = (range) => {
+  if (timeRange.value === range) return
+  timeRange.value = range
+  loadData()
+}
+
+// 计算百分比
+const getPercent = (value, total) => {
+  if (!total || parseFloat(total) === 0) return 0
+  return ((parseFloat(value) / parseFloat(total)) * 100).toFixed(1)
+}
+
+// 生命周期钩子
+onLoad(() => {
+  loadData()
+})
+
+onShow(() => {
+  loadData()
+})
 </script>
 
 <style scoped>

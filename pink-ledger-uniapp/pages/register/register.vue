@@ -59,103 +59,95 @@
   </view>
 </template>
 
-<script>
+<script setup>
+import { ref, reactive } from 'vue'
 import { register } from '@/api'
 import { useTheme } from '@/composables/useTheme.js'
 
-export default {
-  setup() {
-    const { themeColors } = useTheme()
-    return {
-      themeColors
-    }
-  },
-  data() {
-    return {
-      form: {
-        username: '',
-        password: '',
-        confirmPassword: '',
-        nickname: ''
-      },
-      loading: false
-    }
-  },
-  methods: {
-    // 注册
-    async handleRegister() {
-      // 表单验证
-      if (!this.form.username) {
-        uni.showToast({
-          title: '请输入用户名',
-          icon: 'none'
-        })
-        return
-      }
-      
-      if (this.form.username.length < 3 || this.form.username.length > 50) {
-        uni.showToast({
-          title: '用户名长度应为3-50个字符',
-          icon: 'none'
-        })
-        return
-      }
-      
-      if (!this.form.password) {
-        uni.showToast({
-          title: '请输入密码',
-          icon: 'none'
-        })
-        return
-      }
-      
-      if (this.form.password.length < 6) {
-        uni.showToast({
-          title: '密码长度不能少于6位',
-          icon: 'none'
-        })
-        return
-      }
-      
-      if (this.form.password !== this.form.confirmPassword) {
-        uni.showToast({
-          title: '两次密码输入不一致',
-          icon: 'none'
-        })
-        return
-      }
-      
-      try {
-        this.loading = true
-        const res = await register({
-          username: this.form.username,
-          password: this.form.password,
-          nickname: this.form.nickname || this.form.username
-        })
-        
-        uni.showToast({
-          title: '注册成功，请登录',
-          icon: 'success'
-        })
-        
-        // 跳转到登录页面
-        setTimeout(() => {
-          uni.redirectTo({
-            url: '/pages/login/login'
-          })
-        }, 1500)
-      } catch (err) {
-        console.error('注册失败:', err)
-      } finally {
-        this.loading = false
-      }
-    },
-    
-    // 跳转到登录页
-    goToLogin() {
-      uni.navigateBack()
-    }
+// 使用主题组合式函数
+const { themeColors } = useTheme()
+
+// 响应式数据
+const form = reactive({
+  username: '',
+  password: '',
+  confirmPassword: '',
+  nickname: ''
+})
+const loading = ref(false)
+
+// 注册
+const handleRegister = async () => {
+  // 表单验证
+  if (!form.username) {
+    uni.showToast({
+      title: '请输入用户名',
+      icon: 'none'
+    })
+    return
   }
+  
+  if (form.username.length < 3 || form.username.length > 50) {
+    uni.showToast({
+      title: '用户名长度应为3-50个字符',
+      icon: 'none'
+    })
+    return
+  }
+  
+  if (!form.password) {
+    uni.showToast({
+      title: '请输入密码',
+      icon: 'none'
+    })
+    return
+  }
+  
+  if (form.password.length < 6) {
+    uni.showToast({
+      title: '密码长度不能少于6位',
+      icon: 'none'
+    })
+    return
+  }
+  
+  if (form.password !== form.confirmPassword) {
+    uni.showToast({
+      title: '两次密码输入不一致',
+      icon: 'none'
+    })
+    return
+  }
+  
+  try {
+    loading.value = true
+    const res = await register({
+      username: form.username,
+      password: form.password,
+      nickname: form.nickname || form.username
+    })
+    
+    uni.showToast({
+      title: '注册成功，请登录',
+      icon: 'success'
+    })
+    
+    // 跳转到登录页面
+    setTimeout(() => {
+      uni.redirectTo({
+        url: '/pages/login/login'
+      })
+    }, 1500)
+  } catch (err) {
+    console.error('注册失败:', err)
+  } finally {
+    loading.value = false
+  }
+}
+
+// 跳转到登录页
+const goToLogin = () => {
+  uni.navigateBack()
 }
 </script>
 

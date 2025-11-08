@@ -389,6 +389,14 @@ onLoad(() => {
   border-radius: 45rpx;
   font-size: 32rpx;
   font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: normal;
+}
+
+.submit-btn::after {
+  border: none;
 }
 
 .submit-btn[loading] {

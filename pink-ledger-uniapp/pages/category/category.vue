@@ -72,100 +72,93 @@
   </view>
 </template>
 
-<script>
+<script setup>
+import { ref, computed } from 'vue'
+import { onLoad, onShow } from '@dcloudio/uni-app'
 import { getCategories, deleteCategory as deleteCategoryApi } from '@/api'
 
-export default {
-  data() {
-    return {
-      currentType: 'expense',
-      categories: [],
-      showContent: false
-    }
-  },
-  computed: {
-    filteredCategories() {
-      return this.categories.filter(cat => cat.type === this.currentType)
-    }
-  },
-  onLoad() {
-    this.loadCategories()
-  },
-  onReady() {
-    // 延迟触发动画，让页面有下拉效果
-    setTimeout(() => {
-      this.showContent = true
-    }, 300)
-  },
-  onShow() {
-    this.loadCategories()
-  },
-  methods: {
-    // 加载分类
-    async loadCategories() {
-      try {
-        const res = await getCategories()
-        this.categories = res.data.categories
-      } catch (err) {
-        console.error('加载分类失败:', err)
-      }
-    },
-    
-    // 切换类型
-    changeType(type) {
-      if (this.currentType === type) return
-      
-      // 先隐藏内容
-      this.showContent = false
-      
-      // 等待动画结束后切换类型
-      setTimeout(() => {
-        this.currentType = type
-        
-        // 延迟显示新内容，触发下拉动画
-        setTimeout(() => {
-          this.showContent = true
-        }, 50)
-      }, 100)
-    },
-    
-    // 添加分类
-    addCategory() {
-      uni.navigateTo({
-        url: `/pages/category/edit?type=${this.currentType}`
-      })
-    },
-    
-    // 编辑分类
-    editCategory(category) {
-      uni.navigateTo({
-        url: `/pages/category/edit?id=${category.id}`
-      })
-    },
-    
-    // 删除分类
-    deleteCategory(category) {
-      uni.showModal({
-        title: '确认删除',
-        content: `确定要删除分类"${category.name}"吗？`,
-        success: async (res) => {
-          if (res.confirm) {
-            try {
-              await deleteCategoryApi(category.id)
-              uni.showToast({
-                title: '删除成功',
-                icon: 'success'
-              })
-              this.loadCategories()
-            } catch (err) {
-              console.error('删除失败:', err)
-            }
-          }
-        }
-      })
-    }
+// 响应式数据
+const currentType = ref('expense')
+const categories = ref([])
+const showContent = ref(true)
+
+// 计算属性
+const filteredCategories = computed(() => {
+  return categories.value.filter(cat => cat.type === currentType.value)
+})
+
+// 加载分类
+const loadCategories = async () => {
+  try {
+    const res = await getCategories()
+    categories.value = res.data.categories
+  } catch (err) {
+    console.error('加载分类失败:', err)
   }
 }
+
+// 切换类型
+const changeType = (type) => {
+  if (currentType.value === type) return
+  
+  // 先隐藏内容
+  showContent.value = false
+  
+  // 等待动画结束后切换类型
+  setTimeout(() => {
+    currentType.value = type
+    
+    // 延迟显示新内容，触发下拉动画
+    setTimeout(() => {
+      showContent.value = true
+    }, 50)
+  }, 100)
+}
+
+// 添加分类
+const addCategory = () => {
+  uni.navigateTo({
+    url: `/pages/category/edit?type=${currentType.value}`
+  })
+}
+
+// 编辑分类
+const editCategory = (category) => {
+  uni.navigateTo({
+    url: `/pages/category/edit?id=${category.id}`
+  })
+}
+
+// 删除分类
+const deleteCategory = (category) => {
+  uni.showModal({
+    title: '确认删除',
+    content: `确定要删除分类"${category.name}"吗？`,
+    success: async (res) => {
+      if (res.confirm) {
+        try {
+          await deleteCategoryApi(category.id)
+          uni.showToast({
+            title: '删除成功',
+            icon: 'success'
+          })
+          loadCategories()
+        } catch (err) {
+          console.error('删除失败:', err)
+        }
+      }
+    }
+  })
+}
+
+// 生命周期钩子
+onLoad(() => {
+  loadCategories()
+})
+
+onShow(() => {
+  loadCategories()
+})
 </script>
 
 <style scoped>

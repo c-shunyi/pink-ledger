@@ -80,102 +80,92 @@
   </view>
 </template>
 
-<script>
+<script setup>
+import { ref, computed } from 'vue'
+import { onLoad, onShow } from '@dcloudio/uni-app'
 import { getUserInfo, removeToken, removeUserInfo } from '@/utils/storage.js'
 import { useTheme } from '@/composables/useTheme.js'
 
-export default {
-  data() {
-    return {
-      userInfo: {},
-      showThemeModal: false
-    }
-  },
-  computed: {
-    // 用户名首字母
-    userInitial() {
-      const name = this.userInfo.nickname || this.userInfo.username || ''
-      return name.charAt(0).toUpperCase()
-    }
-  },
-  setup() {
-    const { currentThemeId, currentTheme, themeColors, availableThemes, setTheme } = useTheme()
-    
-    return {
-      currentThemeId,
-      currentTheme,
-      themeColors,
-      availableThemes,
-      setTheme
-    }
-  },
-  onLoad() {
-    this.loadUserInfo()
-  },
-  onShow() {
-    this.loadUserInfo()
-  },
-  methods: {
-    // 加载用户信息
-    loadUserInfo() {
-      const userInfo = getUserInfo()
-      if (userInfo) {
-        this.userInfo = userInfo
-      }
-    },
-    
-    // 编辑资料
-    goToEditProfile() {
-      uni.navigateTo({
-        url: '/pages/profile/edit'
-      })
-    },
-    
-    // 分类管理
-    goToCategory() {
-      uni.navigateTo({
-        url: '/pages/category/category'
-      })
-    },
-    
-    // 显示主题选择器
-    showThemeSelector() {
-      this.showThemeModal = true
-    },
-    
-    // 选择主题
-    selectTheme(themeId) {
-      this.setTheme(themeId)
-      this.showThemeModal = false
-    },
-    
-    // 关于我们
-    showAbout() {
-      uni.showModal({
-        title: '关于 Pink Ledger',
-        content: '🌸 Pink Ledger\n\n优雅记账，轻松理财\n\n版本：1.0.0',
-        showCancel: false
-      })
-    },
-    
-    // 退出登录
-    handleLogout() {
-      uni.showModal({
-        title: '退出登录',
-        content: '确定要退出登录吗？',
-        success: (res) => {
-          if (res.confirm) {
-            removeToken()
-            removeUserInfo()
-            uni.reLaunch({
-              url: '/pages/login/login'
-            })
-          }
-        }
-      })
-    }
+// 使用主题组合式函数
+const { currentThemeId, currentTheme, themeColors, availableThemes, setTheme } = useTheme()
+
+// 响应式数据
+const userInfo = ref({})
+const showThemeModal = ref(false)
+
+// 计算属性：用户名首字母
+const userInitial = computed(() => {
+  const name = userInfo.value.nickname || userInfo.value.username || ''
+  return name.charAt(0).toUpperCase()
+})
+
+// 加载用户信息
+const loadUserInfo = () => {
+  const info = getUserInfo()
+  if (info) {
+    userInfo.value = info
   }
 }
+
+// 编辑资料
+const goToEditProfile = () => {
+  uni.navigateTo({
+    url: '/pages/profile/edit'
+  })
+}
+
+// 分类管理
+const goToCategory = () => {
+  uni.navigateTo({
+    url: '/pages/category/category'
+  })
+}
+
+// 显示主题选择器
+const showThemeSelector = () => {
+  showThemeModal.value = true
+}
+
+// 选择主题
+const selectTheme = (themeId) => {
+  setTheme(themeId)
+  showThemeModal.value = false
+}
+
+// 关于我们
+const showAbout = () => {
+  uni.showModal({
+    title: '关于 Pink Ledger',
+    content: '🌸 Pink Ledger\n\n优雅记账，轻松理财\n\n版本：1.0.0',
+    showCancel: false
+  })
+}
+
+// 退出登录
+const handleLogout = () => {
+  uni.showModal({
+    title: '退出登录',
+    content: '确定要退出登录吗？',
+    success: (res) => {
+      if (res.confirm) {
+        removeToken()
+        removeUserInfo()
+        uni.reLaunch({
+          url: '/pages/login/login'
+        })
+      }
+    }
+  })
+}
+
+// 生命周期钩子
+onLoad(() => {
+  loadUserInfo()
+})
+
+onShow(() => {
+  loadUserInfo()
+})
 </script>
 
 <style scoped>

@@ -33,80 +33,70 @@
   </view>
 </template>
 
-<script>
+<script setup>
+import { ref, reactive } from 'vue'
+import { onLoad } from '@dcloudio/uni-app'
 import { getCurrentUser, updateProfile } from '@/api'
 import { getUserInfo, setUserInfo } from '@/utils/storage.js'
 import { useTheme } from '@/composables/useTheme.js'
 
-export default {
-  data() {
-    return {
-      userInfo: {},
-      form: {
-        nickname: '',
-        avatar: ''
-      },
-      loading: false
-    }
-  },
-  setup() {
-    const { currentThemeId, currentTheme, themeColors, availableThemes, setTheme } = useTheme()
-    
-    return {
-      currentThemeId,
-      currentTheme,
-      themeColors,
-      availableThemes,
-      setTheme
-    }
-  },
-  onLoad() {
-    this.loadUserInfo()
-  },
-  methods: {
-    // 加载用户信息
-    loadUserInfo() {
-      const userInfo = getUserInfo()
-      if (userInfo) {
-        this.userInfo = userInfo
-        this.form.nickname = userInfo.nickname || ''
-        this.form.avatar = userInfo.avatar || ''
-      }
-    },
-    
-    // 保存
-    async handleSave() {
-      if (!this.form.nickname) {
-        uni.showToast({
-          title: '请输入昵称',
-          icon: 'none'
-        })
-        return
-      }
-      
-      try {
-        this.loading = true
-        const res = await updateProfile(this.form)
-        
-        // 更新本地存储
-        setUserInfo(res.data.user)
-        
-        uni.showToast({
-          title: '保存成功',
-          icon: 'success'
-        })
-        
-        setTimeout(() => {
-          uni.navigateBack()
-        }, 1500)
-      } catch (err) {
-        console.error('保存失败:', err)
-      } finally {
-        this.loading = false
-      }
-    }
+// 使用主题组合式函数
+const { themeColors } = useTheme()
+
+// 响应式数据
+const userInfo = ref({})
+const form = reactive({
+  nickname: '',
+  avatar: ''
+})
+const loading = ref(false)
+
+// 加载用户信息
+const loadUserInfo = () => {
+  const info = getUserInfo()
+  if (info) {
+    userInfo.value = info
+    form.nickname = info.nickname || ''
+    form.avatar = info.avatar || ''
   }
 }
+
+// 保存
+const handleSave = async () => {
+  if (!form.nickname) {
+    uni.showToast({
+      title: '请输入昵称',
+      icon: 'none'
+    })
+    return
+  }
+  
+  try {
+    loading.value = true
+    const res = await updateProfile(form)
+    
+    // 更新本地存储
+    setUserInfo(res.data.user)
+    
+    uni.showToast({
+      title: '保存成功',
+      icon: 'success'
+    })
+    
+    setTimeout(() => {
+      uni.navigateBack()
+    }, 1500)
+  } catch (err) {
+    console.error('保存失败:', err)
+  } finally {
+    loading.value = false
+  }
+}
+
+// 生命周期钩子
+onLoad(() => {
+  loadUserInfo()
+})
 </script>
 
 <style scoped>
