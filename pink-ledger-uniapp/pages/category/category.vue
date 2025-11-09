@@ -35,19 +35,16 @@
           class="category-item"
           :class="{ 
             'item-show': showContent,
-            'dragging': dragState.dragging && dragState.dragIndex === index,
-            'drag-over': dragState.dragOverIndex === index
+            'dragging-source': dragState.dragging && dragState.dragIndex === index
           }"
-          :style="{ 
-            transitionDelay: (index * 0.05) + 's',
-            transform: dragState.dragging && dragState.dragIndex === index ? `translateY(${dragState.dragOffset}px)` : 'none',
-            zIndex: dragState.dragging && dragState.dragIndex === index ? 1000 : 1
-          }"
-          @touchstart="onItemTouchStart($event, index)"
+          :style="getItemStyle(index)"
           @touchmove="onItemTouchMove($event, index)"
           @touchend="onItemTouchEnd($event, index)"
         >
-          <view class="drag-handle">
+          <view 
+            class="drag-handle"
+            @touchstart="onItemTouchStart($event, index)"
+          >
             <uni-icons type="bars" size="20" color="#ccc"></uni-icons>
           </view>
           <view class="category-info">
@@ -110,7 +107,9 @@ const dragState = ref({
   dragOverIndex: -1,
   dragOffset: 0,
   startY: 0,
-  currentY: 0
+  currentY: 0,
+  previewY: 0,
+  itemHeight: 0
 })
 
 // 计算属性
@@ -229,23 +228,82 @@ const deleteCategory = (category) => {
   })
 }
 
+// 获取元素样式
+const getItemStyle = (index) => {
+  const style = {
+    transitionDelay: dragState.value.dragging ? '0s' : (index * 0.05) + 's',
+    transition: dragState.value.dragging ? 'transform 0.2s ease-out' : 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
+  }
+  
+  if (!dragState.value.dragging) {
+    return style
+  }
+  
+  const { dragIndex, dragOverIndex, dragOffset } = dragState.value
+  // 每个分类项占据的总高度计算：
+  // padding: 30rpx (上) + 30rpx (下) = 60rpx
+  // 内容高度: 约 80rpx (图标60rpx + 文字等)
+  // margin-bottom: 15rpx
+  // 总计: 60 + 80 + 15 = 155rpx
+  const itemHeight = 155 // rpx，每个分类项占据的总高度（包括margin）
+  
+  // 被拖动的元素跟随手指移动
+  if (index === dragIndex) {
+    // 获取系统信息，计算px到rpx的转换比例
+    const systemInfo = uni.getSystemInfoSync()
+    const pixelRatio = systemInfo.pixelRatio || 2
+    const screenWidth = systemInfo.windowWidth
+    // rpx = px * (750 / screenWidth)
+    const rpxRatio = 750 / screenWidth
+    const offsetRpx = dragOffset * rpxRatio
+    style.transform = `translateY(${offsetRpx}rpx)`
+    style.zIndex = 1000
+    style.opacity = '0.9'
+    return style
+  }
+  
+  // 计算其他元素需要移动的距离
+  if (dragOverIndex >= 0 && dragIndex >= 0) {
+    if (index > dragIndex && index <= dragOverIndex) {
+      // 向下拖动，中间的元素向上移动一个位置
+      style.transform = `translateY(-${itemHeight}rpx)`
+    } else if (index < dragIndex && index >= dragOverIndex) {
+      // 向上拖动，中间的元素向下移动一个位置
+      style.transform = `translateY(${itemHeight}rpx)`
+    } else {
+      style.transform = 'translateY(0)'
+    }
+  }
+  
+  return style
+}
+
 // 拖拽排序相关
 const onItemTouchStart = (e, index) => {
   // 阻止事件冒泡，避免触发类型切换
   e.stopPropagation()
+  
+  const touch = e.touches[0]
+  const itemHeight = 120 // rpx，每个分类项的高度
   
   dragState.value = {
     dragging: true,
     dragIndex: index,
     dragOverIndex: -1,
     dragOffset: 0,
-    startY: e.touches[0].clientY,
-    currentY: e.touches[0].clientY
+    startY: touch.clientY,
+    currentY: touch.clientY,
+    previewY: touch.clientY,
+    itemHeight: itemHeight
   }
 }
 
 const onItemTouchMove = (e, index) => {
-  if (!dragState.value.dragging || dragState.value.dragIndex !== index) return
+  // 只有在拖拽状态激活时才响应移动事件
+  if (!dragState.value.dragging) return
+  
+  const dragIndex = dragState.value.dragIndex
+  if (dragIndex === -1) return
   
   e.stopPropagation()
   e.preventDefault()
@@ -254,19 +312,32 @@ const onItemTouchMove = (e, index) => {
   const offset = currentY - dragState.value.startY
   dragState.value.dragOffset = offset
   dragState.value.currentY = currentY
+  dragState.value.previewY = currentY
   
-  // 计算当前拖拽位置对应的索引
-  // 每个分类项高度约为 120rpx，转换为px约为60px（根据设备像素比）
-  const itemHeight = 60 // px
-  const threshold = itemHeight / 2 // 需要移动超过一半高度才切换位置
+  // 获取系统信息，计算rpx到px的转换
+  const systemInfo = uni.getSystemInfoSync()
+  const screenWidth = systemInfo.windowWidth
+  // px = rpx * (screenWidth / 750)
+  const pxRatio = screenWidth / 750
   
-  let newIndex = index
+  // 每个分类项占据的总高度（rpx转px）
+  const itemHeightRpx = 155 // rpx，与 getItemStyle 中的值保持一致
+  const itemHeightPx = itemHeightRpx * pxRatio
+  
+  // 需要移动超过 70% 的高度才切换位置，避免过早触发
+  const threshold = itemHeightPx * 0.7
+  
+  let newIndex = dragIndex
   if (Math.abs(offset) > threshold) {
-    newIndex = index + Math.round(offset / itemHeight)
+    // 计算应该移动到哪个位置
+    const direction = offset > 0 ? 1 : -1
+    const steps = Math.floor(Math.abs(offset) / itemHeightPx)
+    newIndex = dragIndex + (direction * steps)
     newIndex = Math.max(0, Math.min(newIndex, filteredCategories.value.length - 1))
   }
   
-  if (newIndex >= 0 && newIndex < filteredCategories.value.length && newIndex !== index) {
+  // 只有当新索引确实改变时才更新
+  if (newIndex !== dragIndex && newIndex >= 0 && newIndex < filteredCategories.value.length) {
     dragState.value.dragOverIndex = newIndex
   } else {
     dragState.value.dragOverIndex = -1
@@ -274,14 +345,28 @@ const onItemTouchMove = (e, index) => {
 }
 
 const onItemTouchEnd = async (e, index) => {
-  if (!dragState.value.dragging || dragState.value.dragIndex !== index) return
+  // 只有在拖拽状态激活时才响应结束事件
+  if (!dragState.value.dragging) return
   
   e.stopPropagation()
   
   const { dragIndex, dragOverIndex } = dragState.value
   
+  // 先重置拖拽状态，避免样式混乱
+  const wasDragged = dragOverIndex >= 0 && dragOverIndex !== dragIndex
+  dragState.value = {
+    dragging: false,
+    dragIndex: -1,
+    dragOverIndex: -1,
+    dragOffset: 0,
+    startY: 0,
+    currentY: 0,
+    previewY: 0,
+    itemHeight: 0
+  }
+  
   // 如果拖拽到了新位置，更新排序
-  if (dragOverIndex >= 0 && dragOverIndex !== dragIndex) {
+  if (wasDragged) {
     const filtered = filteredCategories.value
     const newCategories = [...filtered]
     const [movedItem] = newCategories.splice(dragIndex, 1)
@@ -290,16 +375,24 @@ const onItemTouchEnd = async (e, index) => {
     // 获取新的分类ID顺序
     const filteredIds = newCategories.map(cat => cat.id)
     
+    // 先更新本地数据，提供即时反馈
+    const allCategories = [...categories.value]
+    const filteredByType = allCategories.filter(cat => cat.type === currentType.value)
+    const otherCategories = allCategories.filter(cat => cat.type !== currentType.value)
+    
+    // 更新当前类型的分类顺序
+    const updatedFiltered = newCategories.map((cat, idx) => {
+      const found = filteredByType.find(c => c.id === cat.id)
+      return found ? { ...found, sortOrder: idx + 1 } : cat
+    })
+    
+    categories.value = [...otherCategories, ...updatedFiltered]
+    
     // 调用API更新排序
     try {
       await updateCategoryOrder(filteredIds)
       // 重新加载分类列表以确保数据同步
       await loadCategories()
-      uni.showToast({
-        title: '排序已更新',
-        icon: 'success',
-        duration: 1500
-      })
     } catch (err) {
       console.error('更新排序失败:', err)
       uni.showToast({
@@ -309,16 +402,6 @@ const onItemTouchEnd = async (e, index) => {
       // 失败时重新加载
       loadCategories()
     }
-  }
-  
-  // 重置拖拽状态
-  dragState.value = {
-    dragging: false,
-    dragIndex: -1,
-    dragOverIndex: -1,
-    dragOffset: 0,
-    startY: 0,
-    currentY: 0
   }
 }
 
@@ -411,24 +494,25 @@ onShow(() => {
   opacity: 1;
 }
 
-.category-item.dragging {
-  opacity: 0.8;
-  box-shadow: 0 10rpx 30rpx rgba(0, 0, 0, 0.2);
-  transition: none;
-}
 
-.category-item.drag-over {
-  border-top: 4rpx solid #667eea;
-}
 
 .drag-handle {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40rpx;
+  width: 60rpx;
+  height: 60rpx;
   margin-right: 20rpx;
   padding: 10rpx;
   touch-action: none;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+  opacity: 0.7;
 }
 
 .category-info {

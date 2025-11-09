@@ -21,7 +21,7 @@ exports.getCategories = async (req, res) => {
 
     const categories = await Category.findAll({
       where: whereClause,
-      order: [['isSystem', 'DESC'], ['sortOrder', 'ASC'], ['createdAt', 'ASC']]
+      order: [['sortOrder', 'ASC'], ['createdAt', 'ASC']]
     });
 
     return sendResponse(res, {
