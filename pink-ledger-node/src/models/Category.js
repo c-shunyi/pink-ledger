@@ -37,6 +37,12 @@ module.exports = (sequelize) => {
       type: DataTypes.INTEGER,
       allowNull: true,
       comment: '用户ID，null表示系统分类，有值表示用户自定义分类'
+    },
+    sortOrder: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+      comment: '排序顺序，数字越小越靠前'
     }
   }, {
     tableName: 'categories',

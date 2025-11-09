@@ -33,9 +33,23 @@
           v-for="(category, index) in filteredCategories" 
           :key="category.id"
           class="category-item"
-          :class="{ 'item-show': showContent }"
-          :style="{ transitionDelay: (index * 0.05) + 's' }"
+          :class="{ 
+            'item-show': showContent,
+            'dragging': dragState.dragging && dragState.dragIndex === index,
+            'drag-over': dragState.dragOverIndex === index
+          }"
+          :style="{ 
+            transitionDelay: (index * 0.05) + 's',
+            transform: dragState.dragging && dragState.dragIndex === index ? `translateY(${dragState.dragOffset}px)` : 'none',
+            zIndex: dragState.dragging && dragState.dragIndex === index ? 1000 : 1
+          }"
+          @touchstart="onItemTouchStart($event, index)"
+          @touchmove="onItemTouchMove($event, index)"
+          @touchend="onItemTouchEnd($event, index)"
         >
+          <view class="drag-handle">
+            <uni-icons type="bars" size="20" color="#ccc"></uni-icons>
+          </view>
           <view class="category-info">
             <text class="category-icon" :style="{ background: category.color || '#F5F5F5' }">
               {{ category.icon }}
@@ -47,10 +61,10 @@
             </view>
           </view>
           <view class="category-actions" v-if="!category.isSystem">
-            <view class="action-btn edit" @click="editCategory(category)">
+            <view class="action-btn edit" @click.stop="editCategory(category)">
               <uni-icons type="compose" size="16" color="#fff"></uni-icons>
             </view>
-            <view class="action-btn delete" @click="deleteCategory(category)">
+            <view class="action-btn delete" @click.stop="deleteCategory(category)">
               <uni-icons type="trash" size="16" color="#FF6B6B"></uni-icons>
             </view>
           </view>
@@ -76,18 +90,28 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
-import { getCategories, deleteCategory as deleteCategoryApi } from '@/api'
+import { getCategories, deleteCategory as deleteCategoryApi, updateCategoryOrder } from '@/api'
 
 // 响应式数据
 const currentType = ref('expense')
 const categories = ref([])
 const showContent = ref(true)
 
-// 触摸滑动相关
+// 触摸滑动相关（用于类型切换）
 const touchStartX = ref(0)
 const touchStartY = ref(0)
 const touchMoveX = ref(0)
 const touchMoveTime = ref(0) // 节流控制
+
+// 拖拽排序相关
+const dragState = ref({
+  dragging: false,
+  dragIndex: -1,
+  dragOverIndex: -1,
+  dragOffset: 0,
+  startY: 0,
+  currentY: 0
+})
 
 // 计算属性
 const filteredCategories = computed(() => {
@@ -205,6 +229,99 @@ const deleteCategory = (category) => {
   })
 }
 
+// 拖拽排序相关
+const onItemTouchStart = (e, index) => {
+  // 阻止事件冒泡，避免触发类型切换
+  e.stopPropagation()
+  
+  dragState.value = {
+    dragging: true,
+    dragIndex: index,
+    dragOverIndex: -1,
+    dragOffset: 0,
+    startY: e.touches[0].clientY,
+    currentY: e.touches[0].clientY
+  }
+}
+
+const onItemTouchMove = (e, index) => {
+  if (!dragState.value.dragging || dragState.value.dragIndex !== index) return
+  
+  e.stopPropagation()
+  e.preventDefault()
+  
+  const currentY = e.touches[0].clientY
+  const offset = currentY - dragState.value.startY
+  dragState.value.dragOffset = offset
+  dragState.value.currentY = currentY
+  
+  // 计算当前拖拽位置对应的索引
+  // 每个分类项高度约为 120rpx，转换为px约为60px（根据设备像素比）
+  const itemHeight = 60 // px
+  const threshold = itemHeight / 2 // 需要移动超过一半高度才切换位置
+  
+  let newIndex = index
+  if (Math.abs(offset) > threshold) {
+    newIndex = index + Math.round(offset / itemHeight)
+    newIndex = Math.max(0, Math.min(newIndex, filteredCategories.value.length - 1))
+  }
+  
+  if (newIndex >= 0 && newIndex < filteredCategories.value.length && newIndex !== index) {
+    dragState.value.dragOverIndex = newIndex
+  } else {
+    dragState.value.dragOverIndex = -1
+  }
+}
+
+const onItemTouchEnd = async (e, index) => {
+  if (!dragState.value.dragging || dragState.value.dragIndex !== index) return
+  
+  e.stopPropagation()
+  
+  const { dragIndex, dragOverIndex } = dragState.value
+  
+  // 如果拖拽到了新位置，更新排序
+  if (dragOverIndex >= 0 && dragOverIndex !== dragIndex) {
+    const filtered = filteredCategories.value
+    const newCategories = [...filtered]
+    const [movedItem] = newCategories.splice(dragIndex, 1)
+    newCategories.splice(dragOverIndex, 0, movedItem)
+    
+    // 获取新的分类ID顺序
+    const filteredIds = newCategories.map(cat => cat.id)
+    
+    // 调用API更新排序
+    try {
+      await updateCategoryOrder(filteredIds)
+      // 重新加载分类列表以确保数据同步
+      await loadCategories()
+      uni.showToast({
+        title: '排序已更新',
+        icon: 'success',
+        duration: 1500
+      })
+    } catch (err) {
+      console.error('更新排序失败:', err)
+      uni.showToast({
+        title: '排序更新失败',
+        icon: 'none'
+      })
+      // 失败时重新加载
+      loadCategories()
+    }
+  }
+  
+  // 重置拖拽状态
+  dragState.value = {
+    dragging: false,
+    dragIndex: -1,
+    dragOverIndex: -1,
+    dragOffset: 0,
+    startY: 0,
+    currentY: 0
+  }
+}
+
 // 生命周期钩子
 onLoad(() => {
   loadCategories()
@@ -285,11 +402,33 @@ onShow(() => {
   transform: translateY(-100rpx);
   opacity: 0;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  touch-action: pan-y;
 }
 
 .category-item.item-show {
   transform: translateY(0);
   opacity: 1;
+}
+
+.category-item.dragging {
+  opacity: 0.8;
+  box-shadow: 0 10rpx 30rpx rgba(0, 0, 0, 0.2);
+  transition: none;
+}
+
+.category-item.drag-over {
+  border-top: 4rpx solid #667eea;
+}
+
+.drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40rpx;
+  margin-right: 20rpx;
+  padding: 10rpx;
+  touch-action: none;
 }
 
 .category-info {

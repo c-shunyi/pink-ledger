@@ -21,7 +21,7 @@ exports.getCategories = async (req, res) => {
 
     const categories = await Category.findAll({
       where: whereClause,
-      order: [['isSystem', 'DESC'], ['createdAt', 'ASC']]
+      order: [['isSystem', 'DESC'], ['sortOrder', 'ASC'], ['createdAt', 'ASC']]
     });
 
     return sendResponse(res, {
@@ -58,13 +58,25 @@ exports.createCategory = async (req, res) => {
       });
     }
 
+    // 获取该类型分类的最大排序值
+    const maxSortOrder = await Category.max('sortOrder', {
+      where: {
+        type,
+        [Op.or]: [
+          { isSystem: true },
+          { userId }
+        ]
+      }
+    });
+
     const category = await Category.create({
       name,
       type,
       icon,
       color,
       userId,
-      isSystem: false
+      isSystem: false,
+      sortOrder: (maxSortOrder || 0) + 1
     });
 
     return sendResponse(res, {
@@ -161,6 +173,60 @@ exports.deleteCategory = async (req, res) => {
     return sendResponse(res, {
       code: 500,
       msg: '删除分类失败'
+    });
+  }
+};
+
+// 更新分类排序
+exports.updateCategoryOrder = async (req, res) => {
+  try {
+    const { categoryIds } = req.body;
+    const userId = req.userId;
+
+    if (!Array.isArray(categoryIds) || categoryIds.length === 0) {
+      return sendResponse(res, {
+        code: 400,
+        msg: '分类ID列表不能为空'
+      });
+    }
+
+    // 验证所有分类都属于当前用户或系统分类
+    const categories = await Category.findAll({
+      where: {
+        id: categoryIds,
+        [Op.or]: [
+          { isSystem: true },
+          { userId }
+        ]
+      }
+    });
+
+    if (categories.length !== categoryIds.length) {
+      return sendResponse(res, {
+        code: 403,
+        msg: '部分分类不存在或无权限修改'
+      });
+    }
+
+    // 批量更新排序
+    const updatePromises = categoryIds.map((categoryId, index) => {
+      return Category.update(
+        { sortOrder: index + 1 },
+        { where: { id: categoryId } }
+      );
+    });
+
+    await Promise.all(updatePromises);
+
+    return sendResponse(res, {
+      code: 200,
+      msg: '排序更新成功'
+    });
+  } catch (error) {
+    console.error('更新分类排序失败:', error);
+    return sendResponse(res, {
+      code: 500,
+      msg: '更新分类排序失败'
     });
   }
 };

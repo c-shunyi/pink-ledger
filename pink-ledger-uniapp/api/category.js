@@ -43,3 +43,12 @@ export const deleteCategory = (id) => {
   return del(`/categories/${id}`)
 }
 
+/**
+ * 更新分类排序
+ * @param {Array<number>} categoryIds - 分类ID数组（按新顺序排列）
+ * @returns {Promise}
+ */
+export const updateCategoryOrder = (categoryIds) => {
+  return post('/categories/order', { categoryIds })
+}
+
