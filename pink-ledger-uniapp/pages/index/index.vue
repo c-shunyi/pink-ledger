@@ -36,7 +36,9 @@
       <view class="date-picker-modal" @click.stop>
         <view class="picker-header">
           <text class="picker-title">选择年月</text>
-          <text class="picker-close" @click="showDatePicker = false">✕</text>
+          <view class="picker-close" @click="showDatePicker = false">
+            <uni-icons type="closeempty" size="20" color="#999"></uni-icons>
+          </view>
         </view>
         <view class="picker-content">
           <picker-view 
@@ -149,7 +151,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 import { useAuth } from '@/composables/useAuth.js'
 import { useTransactions } from '@/composables/useTransactions.js'
@@ -180,6 +182,7 @@ const pickerValue = ref([0, 0])
 const yearList = ref([])
 const monthList = ref([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
 const tempPickerValue = ref([0, 0])
+const currentDate = ref({ year: 0, month: 0 }) // 存储当前年月，用于限制选择
 
 // 记录上一次的滑块位置，用于计算旋转方向
 const previousFilterIndex = ref(0)
@@ -230,13 +233,16 @@ const initCurrentMonth = () => {
   const year = now.getFullYear()
   const month = now.getMonth() + 1
   
+  // 保存当前年月，用于限制选择
+  currentDate.value = { year, month }
+  
   currentYear.value = year
   currentMonthNum.value = month
   currentMonth.value = `${year}年${month}月`
   
-  // 生成年份列表（当前年前后各5年）
+  // 生成年份列表（只到当前年，不包含未来年份）
   yearList.value = []
-  for (let i = year - 5; i <= year + 5; i++) {
+  for (let i = year - 5; i <= year; i++) {
     yearList.value.push(i)
   }
   
@@ -245,6 +251,25 @@ const initCurrentMonth = () => {
   const monthIndex = month - 1
   pickerValue.value = [yearIndex, monthIndex]
   tempPickerValue.value = [yearIndex, monthIndex]
+  
+  // 初始化月份列表（当前年只显示到当前月）
+  updateMonthList(year)
+}
+
+// 根据选择的年份更新月份列表
+const updateMonthList = (selectedYear) => {
+  const { year: currentYear, month: currentMonth } = currentDate.value
+  
+  if (selectedYear === currentYear) {
+    // 如果是当前年，只显示到当前月
+    monthList.value = []
+    for (let i = 1; i <= currentMonth; i++) {
+      monthList.value.push(i)
+    }
+  } else {
+    // 如果是过去的年份，显示1-12月
+    monthList.value = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+  }
 }
 
 // 加载数据（根据筛选条件）
@@ -372,7 +397,19 @@ const onTouchEnd = (e) => {
 
 // 日期选择器相关方法
 const onPickerChange = (e) => {
-  tempPickerValue.value = e.detail.value
+  const [yearIndex, monthIndex] = e.detail.value
+  tempPickerValue.value = [yearIndex, monthIndex]
+  
+  // 当年份改变时，更新月份列表
+  if (yearIndex >= 0 && yearIndex < yearList.value.length) {
+    const selectedYear = yearList.value[yearIndex]
+    updateMonthList(selectedYear)
+    
+    // 如果当前选择的月份超出了新的月份列表范围，自动调整到最大月份
+    if (monthIndex >= monthList.value.length) {
+      tempPickerValue.value = [yearIndex, monthList.value.length - 1]
+    }
+  }
 }
 
 const confirmDateChange = () => {
@@ -383,6 +420,17 @@ const confirmDateChange = () => {
       monthIndex >= 0 && monthIndex < monthList.value.length) {
     const selectedYear = yearList.value[yearIndex]
     const selectedMonth = monthList.value[monthIndex]
+    const { year: maxYear, month: maxMonth } = currentDate.value
+    
+    // 验证选择的日期不能超过当前年月
+    if (selectedYear > maxYear || 
+        (selectedYear === maxYear && selectedMonth > maxMonth)) {
+      uni.showToast({
+        title: '不能选择未来的日期',
+        icon: 'none'
+      })
+      return
+    }
     
     currentYear.value = selectedYear
     currentMonthNum.value = selectedMonth
@@ -395,6 +443,18 @@ const confirmDateChange = () => {
     loadData()
   }
 }
+
+// 监听日期选择器打开，确保月份列表正确
+watch(showDatePicker, (newVal) => {
+  if (newVal) {
+    // 打开选择器时，根据当前选择的年份更新月份列表
+    const yearIndex = pickerValue.value[0]
+    if (yearIndex >= 0 && yearIndex < yearList.value.length) {
+      const selectedYear = yearList.value[yearIndex]
+      updateMonthList(selectedYear)
+    }
+  }
+})
 
 // 生命周期钩子
 onLoad(() => {
