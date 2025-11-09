@@ -64,8 +64,7 @@
             <view class="theme-preview" :style="{ background: theme.colors.gradient }">
               <text class="theme-icon">{{ theme.icon }}</text>
             </view>
-            <text class="theme-name">{{ theme.name }}</text>
-            <text v-if="currentThemeId === theme.id" class="theme-check">✓</text>
+            <view v-if="currentThemeId === theme.id" class="theme-check">✓</view>
           </view>
         </view>
       </view>
@@ -353,25 +352,32 @@ onShow(() => {
 }
 
 .theme-list {
-  padding: 20rpx;
+  padding: 30rpx;
   max-height: 500rpx;
   overflow-y: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20rpx;
 }
 
 .theme-item {
   display: flex;
   align-items: center;
+  justify-content: center;
   padding: 20rpx;
   border-radius: 15rpx;
-  margin-bottom: 15rpx;
   background: #f8f8f8;
   position: relative;
   transition: all 0.3s;
+  width: 120rpx;
+  height: 120rpx;
+  border: 3rpx solid transparent;
 }
 
 .theme-item.active {
   background: #fff;
   box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.1);
+  border-color: #4cd964;
 }
 
 .theme-preview {
@@ -381,24 +387,27 @@ onShow(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 20rpx;
 }
 
 .theme-icon {
   font-size: 40rpx;
 }
 
-.theme-name {
-  flex: 1;
-  font-size: 30rpx;
-  color: #333;
-  font-weight: 500;
-}
-
 .theme-check {
-  font-size: 36rpx;
+  position: absolute;
+  top: 5rpx;
+  right: 5rpx;
+  font-size: 28rpx;
   color: #4cd964;
   font-weight: bold;
+  background: #fff;
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
 }
 </style>
 

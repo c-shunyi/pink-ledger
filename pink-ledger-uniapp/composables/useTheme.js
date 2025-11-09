@@ -32,11 +32,11 @@ const setTheme = (themeId) => {
     try {
       uni.setStorageSync('theme', themeId)
       // 显示切换成功提示
-      uni.showToast({
-        title: `已切换到${theme.name}主题`,
-        icon: 'success',
-        duration: 1500
-      })
+      // uni.showToast({
+      //   title: `已切换到${theme.name}主题`,
+      //   icon: 'success',
+      //   duration: 1500
+      // })
     } catch (e) {
       console.error('保存主题失败:', e)
     }

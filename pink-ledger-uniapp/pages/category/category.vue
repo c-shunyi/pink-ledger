@@ -6,9 +6,6 @@
   >
     <!-- 类型切换 -->
     <view class="type-tabs">
-      <!-- 滑块背景 -->
-      <view class="tab-slider" :class="{ 'slide-right': currentType === 'income' }"></view>
-      
       <view 
         class="type-tab" 
         :class="{ active: currentType === 'expense' }"
@@ -233,26 +230,9 @@ onShow(() => {
   display: flex;
   background: #fff;
   padding: 20rpx;
+  gap: 20rpx;
   z-index: 100;
   box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
-}
-
-/* 滑块背景 */
-.tab-slider {
-  position: absolute;
-  top: 20rpx;
-  left: 20rpx;
-  right: 50%;
-  height: calc(100% - 40rpx);
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 15rpx;
-  transition: all 0.4s cubic-bezier(0.1, 0.7, 0.3, 0.9);
-  z-index: 1;
-}
-
-.tab-slider.slide-right {
-  left: 50%;
-  right: 20rpx;
 }
 
 .type-tab {
@@ -261,14 +241,14 @@ onShow(() => {
   padding: 20rpx 0;
   font-size: 28rpx;
   color: #666;
+  background: #f5f5f5;
   border-radius: 15rpx;
   transition: all 0.3s;
-  position: relative;
-  z-index: 2;
 }
 
 .type-tab.active {
   color: #fff;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   font-weight: bold;
 }
 
