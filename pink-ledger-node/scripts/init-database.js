@@ -79,30 +79,31 @@ const initSystemCategories = async () => {
   
   const systemCategories = [
     // 支出分类
-    { name: '餐饮', type: 'expense', icon: '🍽️', color: '#FF6B6B', isSystem: true, userId: null },
-    { name: '交通', type: 'expense', icon: '🚗', color: '#4ECDC4', isSystem: true, userId: null },
-    { name: '购物', type: 'expense', icon: '🛒', color: '#FFE66D', isSystem: true, userId: null },
-    { name: '娱乐', type: 'expense', icon: '🎮', color: '#A8E6CF', isSystem: true, userId: null },
-    { name: '医疗', type: 'expense', icon: '💊', color: '#FF8B94', isSystem: true, userId: null },
-    { name: '住房', type: 'expense', icon: '🏠', color: '#C7CEEA', isSystem: true, userId: null },
-    { name: '学习', type: 'expense', icon: '📚', color: '#FFDAB9', isSystem: true, userId: null },
-    { name: '零食', type: 'expense', icon: '🍭', color: '#FFB6D9', isSystem: true, userId: null },
-    { name: '日用', type: 'expense', icon: '🧴', color: '#A0E7E5', isSystem: true, userId: null },
-    { name: '其他支出', type: 'expense', icon: '💸', color: '#B4A7D6', isSystem: true, userId: null },
+    { name: '餐饮', type: 'expense', icon: '🍽️', color: '#FF6B6B', isSystem: true, userId: null, sortOrder: 1 },
+    { name: '交通', type: 'expense', icon: '🚗', color: '#4ECDC4', isSystem: true, userId: null, sortOrder: 2 },
+    { name: '购物', type: 'expense', icon: '🛒', color: '#FFE66D', isSystem: true, userId: null, sortOrder: 3 },
+    { name: '娱乐', type: 'expense', icon: '🎮', color: '#A8E6CF', isSystem: true, userId: null, sortOrder: 4 },
+    { name: '医疗', type: 'expense', icon: '💊', color: '#FF8B94', isSystem: true, userId: null, sortOrder: 5 },
+    { name: '住房', type: 'expense', icon: '🏠', color: '#C7CEEA', isSystem: true, userId: null, sortOrder: 6 },
+    { name: '学习', type: 'expense', icon: '📚', color: '#FFDAB9', isSystem: true, userId: null, sortOrder: 7 },
+    { name: '零食', type: 'expense', icon: '🍭', color: '#FFB6D9', isSystem: true, userId: null, sortOrder: 8 },
+    { name: '日用', type: 'expense', icon: '🧴', color: '#A0E7E5', isSystem: true, userId: null, sortOrder: 9 },
+    { name: '其他支出', type: 'expense', icon: '💸', color: '#B4A7D6', isSystem: true, userId: null, sortOrder: 10 },
     
     // 收入分类
-    { name: '工资', type: 'income', icon: '💰', color: '#06D6A0', isSystem: true, userId: null },
-    { name: '兼职', type: 'income', icon: '💼', color: '#118AB2', isSystem: true, userId: null },
-    { name: '投资', type: 'income', icon: '📈', color: '#EF476F', isSystem: true, userId: null },
-    { name: '红包', type: 'income', icon: '🧧', color: '#FFD166', isSystem: true, userId: null },
-    { name: '其他收入', type: 'income', icon: '💵', color: '#06FFA5', isSystem: true, userId: null }
+    { name: '工资', type: 'income', icon: '💰', color: '#06D6A0', isSystem: true, userId: null, sortOrder: 1 },
+    { name: '兼职', type: 'income', icon: '💼', color: '#118AB2', isSystem: true, userId: null, sortOrder: 2 },
+    { name: '投资', type: 'income', icon: '📈', color: '#EF476F', isSystem: true, userId: null, sortOrder: 3 },
+    { name: '红包', type: 'income', icon: '🧧', color: '#FFD166', isSystem: true, userId: null, sortOrder: 4 },
+    { name: '其他收入', type: 'income', icon: '💵', color: '#06FFA5', isSystem: true, userId: null, sortOrder: 5 }
   ];
 
   let createdCount = 0;
   let existingCount = 0;
+  let updatedCount = 0;
 
   for (const category of systemCategories) {
-    const [_, created] = await Category.findOrCreate({
+    const [categoryInstance, created] = await Category.findOrCreate({
       where: { name: category.name, type: category.type, isSystem: true },
       defaults: category
     });
@@ -112,10 +113,17 @@ const initSystemCategories = async () => {
       console.log(`   ✓ 创建分类: ${category.icon} ${category.name}`);
     } else {
       existingCount++;
+      // 如果分类已存在但没有 sortOrder，则更新它
+      if (categoryInstance.sortOrder === 0 || categoryInstance.sortOrder === null) {
+        categoryInstance.sortOrder = category.sortOrder;
+        await categoryInstance.save();
+        updatedCount++;
+        console.log(`   ↻ 更新分类排序: ${category.icon} ${category.name}`);
+      }
     }
   }
 
-  console.log(`✅ 系统分类初始化完成 (新建: ${createdCount}, 已存在: ${existingCount})`);
+  console.log(`✅ 系统分类初始化完成 (新建: ${createdCount}, 已存在: ${existingCount}, 更新排序: ${updatedCount})`);
 };
 
 // 测试数据库连接

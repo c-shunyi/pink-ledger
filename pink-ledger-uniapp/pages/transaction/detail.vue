@@ -210,24 +210,40 @@ const handleConfirmEdit = async () => {
 
 // 删除
 const handleDelete = async () => {
-  try {
-    uni.showLoading({
-      title: '删除中...',
-      mask: true
-    })
-    
-    await deleteTransaction(id.value)
-    
-    uni.hideLoading()
-    uni.navigateBack()
-  } catch (err) {
-    console.error('删除失败:', err)
-    uni.hideLoading()
-    uni.showToast({
-      title: '删除失败',
-      icon: 'none'
-    })
-  }
+  uni.showModal({
+    title: '确认删除',
+    content: '删除后无法恢复，确定要删除这条账单吗？',
+    confirmColor: '#FF6B6B',
+    success: async (res) => {
+      if (res.confirm) {
+        try {
+          uni.showLoading({
+            title: '删除中...',
+            mask: true
+          })
+
+          await deleteTransaction(id.value)
+
+          uni.hideLoading()
+          uni.showToast({
+            title: '删除成功',
+            icon: 'success'
+          })
+
+          setTimeout(() => {
+            uni.navigateBack()
+          }, 500)
+        } catch (err) {
+          console.error('删除失败:', err)
+          uni.hideLoading()
+          uni.showToast({
+            title: '删除失败',
+            icon: 'none'
+          })
+        }
+      }
+    }
+  })
 }
 
 // 生命周期

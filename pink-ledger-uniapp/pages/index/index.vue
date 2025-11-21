@@ -523,6 +523,10 @@ onShow(() => {
   flex-direction: column;
   align-items: center;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .year-text {
@@ -615,6 +619,10 @@ onShow(() => {
   justify-content: center;
   border-radius: 50%;
   background: #f5f5f5;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .picker-content {
@@ -646,6 +654,10 @@ onShow(() => {
   text-align: center;
   font-size: 28rpx;
   border-right: 1px solid #f0f0f0;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .picker-btn:last-child {
@@ -694,6 +706,10 @@ onShow(() => {
   border-radius: 10rpx;
   transition: color 0.3s;
   z-index: 2;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .filter-item.active {
@@ -767,6 +783,10 @@ onShow(() => {
   padding: 30rpx;
   border-radius: 20rpx;
   margin-bottom: 15rpx;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .transaction-icon {
@@ -871,6 +891,10 @@ onShow(() => {
   box-shadow: 0 10rpx 30rpx v-bind('themeColors.shadow');
   cursor: pointer;
   transition: transform 0.2s;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .add-btn:active {

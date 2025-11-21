@@ -18,17 +18,25 @@
       </view>
     </view>
     
-    <!-- 金额输入 -->
+    <!-- 金额输入区域 -->
     <view class="amount-section">
-      <text class="currency"></text>
-      <input 
-        class="amount-input" 
+      <text class="currency">¥</text>
+      <input
+        class="amount-input"
         v-model="form.amount"
-        type="digit"
+        type="text"
         placeholder="0.00"
-        @input="onAmountInput"
+        :disabled="true"
+        @click="showKeyboard = true"
       />
     </view>
+
+    <!-- 自定义数字键盘 -->
+    <NumberKeyboard
+      v-model="form.amount"
+      :visible="showKeyboard"
+      @update:visible="showKeyboard = $event"
+    />
     
     <!-- 分类选择 -->
     <view class="category-section">
@@ -94,6 +102,7 @@ import { useTransactions } from '@/composables/useTransactions.js'
 import { useTheme } from '@/composables/useTheme.js'
 import { getToday } from '@/utils/date.js'
 import config from '@/config/index.js'
+import NumberKeyboard from '@/components/NumberKeyboard.vue'
 
 // 使用组合式函数
 const { categories, loadCategories } = useCategories()
@@ -111,6 +120,7 @@ const form = reactive({
 
 // 其他响应式数据
 const loading = ref(false)
+const showKeyboard = ref(false)
 
 // 计算属性：根据类型筛选分类
 const filteredCategories = computed(() => {
@@ -135,23 +145,6 @@ watch(categories, () => {
 const changeType = (type) => {
   form.type = type
   // 重置分类选择在watch中处理
-}
-
-// 金额输入处理
-const onAmountInput = (e) => {
-  let value = e.detail.value
-  // 只保留数字和一个小数点
-  value = value.replace(/[^\d.]/g, '')
-  // 只保留一个小数点
-  const dotIndex = value.indexOf('.')
-  if (dotIndex !== -1) {
-    value = value.substring(0, dotIndex + 1) + value.substring(dotIndex + 1).replace(/\./g, '')
-    // 只保留两位小数
-    if (value.split('.')[1] && value.split('.')[1].length > 2) {
-      value = parseFloat(value).toFixed(2)
-    }
-  }
-  form.amount = value
 }
 
 // 选择分类
@@ -227,6 +220,10 @@ onLoad(() => {
   padding: 20rpx 0;
   border-radius: 15rpx;
   transition: all 0.3s;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .type-tab.active {
@@ -243,13 +240,19 @@ onLoad(() => {
   font-weight: bold;
 }
 
-/* 金额输入 */
+/* 金额输入区域 */
 .amount-section {
   display: flex;
   align-items: center;
-  padding: 50rpx;
+  padding: 0rpx 30rpx;
   background: #fff;
   margin-bottom: 20rpx;
+  min-height: 180rpx;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .currency {
@@ -257,6 +260,7 @@ onLoad(() => {
   color: #333;
   font-weight: bold;
   margin-right: 10rpx;
+  line-height: 1.2;
 }
 
 .amount-input {
@@ -264,10 +268,11 @@ onLoad(() => {
   color: #333;
   font-weight: bold;
   flex: 1;
+  border: none;
+  background: transparent;
   text-align: left;
-  max-width: 500rpx;
+  line-height: 1.2;
   height: 100rpx;
-  line-height: 100rpx;
 }
 
 /* 分类选择 */
@@ -297,6 +302,10 @@ onLoad(() => {
   align-items: center;
   padding: 20rpx 0;
   margin-bottom: 20rpx;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .category-item.active .category-icon {
@@ -342,6 +351,10 @@ onLoad(() => {
   align-items: center;
   padding: 30rpx 0;
   border-bottom: 1px solid #F5F5F5;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .form-item:last-child {
