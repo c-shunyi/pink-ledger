@@ -118,8 +118,7 @@
               <text class="icon-text">{{ item.category.icon }}</text>
             </view>
             <view class="transaction-info">
-              <text class="category-name">{{ item.category.name }}</text>
-              <text class="description" v-if="item.description">{{ item.description }}</text>
+              <text class="category-name">{{ item.description || item.category.name }}</text>
             </view>
             <view class="transaction-amount">
               <text 
