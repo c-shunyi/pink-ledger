@@ -20,7 +20,7 @@
     <view class="menu-section">
       <view class="menu-item" @click="goToCategory">
         <view class="menu-left">
-          <text class="menu-icon">🏷️</text>
+          <image class="menu-icon-img" src="/static/icon/category.png" mode="aspectFit"></image>
           <text class="menu-text">分类管理</text>
         </view>
         <text class="menu-arrow">›</text>
@@ -28,7 +28,7 @@
       
       <view class="menu-item" @click="showAbout">
         <view class="menu-left">
-          <text class="menu-icon">ℹ️</text>
+          <image class="menu-icon-img" src="/static/icon/about.png" mode="aspectFit"></image>
           <text class="menu-text">关于我们</text>
         </view>
         <text class="menu-arrow">›</text>
@@ -212,6 +212,12 @@ onShow(() => {
 
 .menu-icon {
   font-size: 40rpx;
+  margin-right: 20rpx;
+}
+
+.menu-icon-img {
+  width: 40rpx;
+  height: 40rpx;
   margin-right: 20rpx;
 }
 

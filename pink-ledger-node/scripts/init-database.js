@@ -79,23 +79,23 @@ const initSystemCategories = async () => {
   
   const systemCategories = [
     // 支出分类
-    { name: '餐饮', type: 'expense', icon: '🍽️', color: '#FF6B6B', isSystem: true, userId: null, sortOrder: 1 },
-    { name: '交通', type: 'expense', icon: '🚗', color: '#4ECDC4', isSystem: true, userId: null, sortOrder: 2 },
-    { name: '购物', type: 'expense', icon: '🛒', color: '#FFE66D', isSystem: true, userId: null, sortOrder: 3 },
-    { name: '娱乐', type: 'expense', icon: '🎮', color: '#A8E6CF', isSystem: true, userId: null, sortOrder: 4 },
-    { name: '医疗', type: 'expense', icon: '💊', color: '#FF8B94', isSystem: true, userId: null, sortOrder: 5 },
-    { name: '住房', type: 'expense', icon: '🏠', color: '#C7CEEA', isSystem: true, userId: null, sortOrder: 6 },
-    { name: '学习', type: 'expense', icon: '📚', color: '#FFDAB9', isSystem: true, userId: null, sortOrder: 7 },
-    { name: '零食', type: 'expense', icon: '🍭', color: '#FFB6D9', isSystem: true, userId: null, sortOrder: 8 },
-    { name: '日用', type: 'expense', icon: '🧴', color: '#A0E7E5', isSystem: true, userId: null, sortOrder: 9 },
-    { name: '其他支出', type: 'expense', icon: '💸', color: '#B4A7D6', isSystem: true, userId: null, sortOrder: 10 },
+    { name: '餐饮', type: 'expense', icon: '/static/category-icon/rice.png', color: '#FF6B6B', isSystem: true, userId: null, sortOrder: 1 },
+    { name: '交通', type: 'expense', icon: '/static/category-icon/car.png', color: '#4ECDC4', isSystem: true, userId: null, sortOrder: 2 },
+    { name: '购物', type: 'expense', icon: '/static/category-icon/shopping.png', color: '#FFE66D', isSystem: true, userId: null, sortOrder: 3 },
+    { name: '娱乐', type: 'expense', icon: '/static/category-icon/game.png', color: '#A8E6CF', isSystem: true, userId: null, sortOrder: 4 },
+    { name: '医疗', type: 'expense', icon: '/static/category-icon/others.png', color: '#FF8B94', isSystem: true, userId: null, sortOrder: 5 },
+    { name: '住房', type: 'expense', icon: '/static/category-icon/home.png', color: '#C7CEEA', isSystem: true, userId: null, sortOrder: 6 },
+    { name: '学习', type: 'expense', icon: '/static/category-icon/book.png', color: '#FFDAB9', isSystem: true, userId: null, sortOrder: 7 },
+    { name: '零食', type: 'expense', icon: '/static/category-icon/candy.png', color: '#FFB6D9', isSystem: true, userId: null, sortOrder: 8 },
+    { name: '日用', type: 'expense', icon: '/static/category-icon/others.png', color: '#A0E7E5', isSystem: true, userId: null, sortOrder: 9 },
+    { name: '其他支出', type: 'expense', icon: '/static/category-icon/others.png', color: '#B4A7D6', isSystem: true, userId: null, sortOrder: 10 },
     
     // 收入分类
-    { name: '工资', type: 'income', icon: '💰', color: '#06D6A0', isSystem: true, userId: null, sortOrder: 1 },
-    { name: '兼职', type: 'income', icon: '💼', color: '#118AB2', isSystem: true, userId: null, sortOrder: 2 },
-    { name: '投资', type: 'income', icon: '📈', color: '#EF476F', isSystem: true, userId: null, sortOrder: 3 },
-    { name: '红包', type: 'income', icon: '🧧', color: '#FFD166', isSystem: true, userId: null, sortOrder: 4 },
-    { name: '其他收入', type: 'income', icon: '💵', color: '#06FFA5', isSystem: true, userId: null, sortOrder: 5 }
+    { name: '工资', type: 'income', icon: '/static/category-icon/others.png', color: '#06D6A0', isSystem: true, userId: null, sortOrder: 1 },
+    { name: '兼职', type: 'income', icon: '/static/category-icon/others.png', color: '#118AB2', isSystem: true, userId: null, sortOrder: 2 },
+    { name: '投资', type: 'income', icon: '/static/category-icon/others.png', color: '#EF476F', isSystem: true, userId: null, sortOrder: 3 },
+    { name: '红包', type: 'income', icon: '/static/category-icon/others.png', color: '#FFD166', isSystem: true, userId: null, sortOrder: 4 },
+    { name: '其他收入', type: 'income', icon: '/static/category-icon/others.png', color: '#06FFA5', isSystem: true, userId: null, sortOrder: 5 }
   ];
 
   let createdCount = 0;

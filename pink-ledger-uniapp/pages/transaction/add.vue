@@ -50,7 +50,8 @@
           @click="selectCategory(category)"
         >
           <view class="category-icon" :style="{ background: category.color || '#F5F5F5' }">
-            <text class="icon-text">{{ category.icon }}</text>
+            <image v-if="category.icon && category.icon.startsWith('/static/')" class="icon-img" :src="category.icon" mode="aspectFit"></image>
+            <text v-else class="icon-text">{{ category.icon }}</text>
           </view>
           <text class="category-name">{{ category.name }}</text>
         </view>
@@ -326,6 +327,11 @@ onLoad(() => {
 
 .icon-text {
   font-size: 40rpx;
+}
+
+.icon-img {
+  width: 50rpx;
+  height: 50rpx;
 }
 
 .category-name {

@@ -48,9 +48,10 @@
             <uni-icons type="bars" size="20" color="#ccc"></uni-icons>
           </view>
           <view class="category-info">
-            <text class="category-icon" :style="{ background: category.color || '#F5F5F5' }">
-              {{ category.icon }}
-            </text>
+            <view class="category-icon" :style="{ background: category.color || '#F5F5F5' }">
+              <image v-if="category.icon && category.icon.startsWith('/static/')" class="icon-img" :src="category.icon" mode="aspectFit"></image>
+              <text v-else class="icon-text">{{ category.icon }}</text>
+            </view>
             <view class="category-text">
               <text class="category-name">{{ category.name }}</text>
               <text class="category-tag" v-if="category.isSystem">系统</text>
@@ -531,6 +532,15 @@ onShow(() => {
   justify-content: center;
   font-size: 40rpx;
   margin-right: 20rpx;
+}
+
+.category-icon .icon-img {
+  width: 50rpx;
+  height: 50rpx;
+}
+
+.category-icon .icon-text {
+  font-size: 40rpx;
 }
 
 .category-text {

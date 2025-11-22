@@ -15,7 +15,8 @@
           <text class="info-label">分类</text>
           <view class="info-value">
             <view class="category-icon-wrapper" :style="{ background: transaction.category.color || '#F5F5F5' }">
-              <text class="category-icon">{{ transaction.category.icon }}</text>
+              <image v-if="transaction.category.icon && transaction.category.icon.startsWith('/static/')" class="category-icon-img" :src="transaction.category.icon" mode="aspectFit"></image>
+              <text v-else class="category-icon">{{ transaction.category.icon }}</text>
             </view>
             <text class="category-name">{{ transaction.category.name }}</text>
           </view>
@@ -334,6 +335,11 @@ const handleShowModal = () => {
 
 .category-icon {
   font-size: 32rpx;
+}
+
+.category-icon-img {
+  width: 40rpx;
+  height: 40rpx;
 }
 
 .category-name {

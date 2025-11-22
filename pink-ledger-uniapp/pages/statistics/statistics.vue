@@ -51,7 +51,10 @@
             class="stats-item"
           >
             <view class="stats-left">
-              <text class="stats-icon">{{ item.category.icon }}</text>
+              <view class="stats-icon">
+                <image v-if="item.category.icon && item.category.icon.startsWith('/static/')" class="icon-img" :src="item.category.icon" mode="aspectFit"></image>
+                <text v-else class="icon-text">{{ item.category.icon }}</text>
+              </view>
               <view class="stats-info">
                 <text class="stats-name">{{ item.category.name }}</text>
                 <text class="stats-count">{{ item.count }}笔</text>
@@ -88,7 +91,10 @@
             class="stats-item"
           >
             <view class="stats-left">
-              <text class="stats-icon">{{ item.category.icon }}</text>
+              <view class="stats-icon">
+                <image v-if="item.category.icon && item.category.icon.startsWith('/static/')" class="icon-img" :src="item.category.icon" mode="aspectFit"></image>
+                <text v-else class="icon-text">{{ item.category.icon }}</text>
+              </view>
               <view class="stats-info">
                 <text class="stats-name">{{ item.category.name }}</text>
                 <text class="stats-count">{{ item.count }}笔</text>
@@ -339,6 +345,15 @@ onShow(() => {
   justify-content: center;
   font-size: 36rpx;
   margin-right: 20rpx;
+}
+
+.stats-icon .icon-img {
+  width: 45rpx;
+  height: 45rpx;
+}
+
+.stats-icon .icon-text {
+  font-size: 36rpx;
 }
 
 .stats-info {

@@ -115,7 +115,8 @@
             @click="goToDetail(item.id)"
           >
             <view class="transaction-icon" :style="{ background: item.category.color || '#F5F5F5' }">
-              <text class="icon-text">{{ item.category.icon }}</text>
+              <image v-if="item.category.icon && item.category.icon.startsWith('/static/')" class="icon-img" :src="item.category.icon" mode="aspectFit"></image>
+              <text v-else class="icon-text">{{ item.category.icon }}</text>
             </view>
             <view class="transaction-info">
               <text class="category-name">{{ item.description || item.category.name }}</text>
@@ -800,6 +801,11 @@ onShow(() => {
 
 .icon-text {
   font-size: 40rpx;
+}
+
+.icon-img {
+  width: 50rpx;
+  height: 50rpx;
 }
 
 .transaction-info {

@@ -1,18 +1,18 @@
 import { computed } from 'vue'
 
-// 固定使用紫色主题
+// 固定使用淡蓝色主题
 const purpleTheme = {
   id: "purple",
-  name: "紫色",
+  name: "淡蓝",
   icon: "🦄",
   colors: {
-    primary: "#A890FE",
-    secondary: "#C9B6FF",
-    gradient: "linear-gradient(135deg, #A890FE 0%, #C9B6FF 100%)",
-    gradientReverse: "linear-gradient(135deg, #C9B6FF 0%, #A890FE 100%)",
-    text: "#8B7FE8",
-    light: "#F0EBFF",
-    shadow: "rgba(168, 144, 254, 0.5)"
+    primary: "#6b72e8",
+    secondary: "#8b91f0",
+    gradient: "linear-gradient(135deg, #6b72e8 0%, #8b91f0 100%)",
+    gradientReverse: "linear-gradient(135deg, #8b91f0 0%, #6b72e8 100%)",
+    text: "#5a60d8",
+    light: "#eff0fc",
+    shadow: "rgba(107, 114, 232, 0.5)"
   }
 }
 

@@ -18,9 +18,9 @@ module.exports = (sequelize) => {
       comment: '分类类型：income-收入，expense-支出'
     },
     icon: {
-      type: DataTypes.STRING(50),
+      type: DataTypes.STRING(200),
       allowNull: true,
-      comment: '图标名称'
+      comment: '图标路径，如：/static/category-icon/rice.png'
     },
     color: {
       type: DataTypes.STRING(20),
