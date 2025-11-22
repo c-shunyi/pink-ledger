@@ -13,7 +13,7 @@ const { Category } = require('../src/models');
 require('dotenv').config();
 
 // 统一的背景色
-const UNIFIED_COLOR = '#6b72e8';
+const UNIFIED_COLOR = '#d7e0ff';
 
 // 图标映射表：分类名称 -> 图片路径
 const iconMapping = {
