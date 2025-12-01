@@ -3,7 +3,6 @@
     <view class="range-card">
       <text class="range-title">{{ pageTitle }}</text>
       <text class="range-desc">{{ rangeText }}</text>
-      <text class="range-tip">{{ type === 'expense' ? '金额越大表示支出越高' : '金额越大表示收入越高' }}</text>
     </view>
 
     <view v-if="loading" class="status-text">加载中...</view>
@@ -141,15 +140,10 @@ onLoad((options) => {
 }
 
 .range-desc {
+  display: block;
+  margin-top: 8rpx;
   font-size: 26rpx;
   opacity: 0.9;
-}
-
-.range-tip {
-  display: block;
-  margin-top: 12rpx;
-  font-size: 24rpx;
-  opacity: 0.8;
 }
 
 .status-text {

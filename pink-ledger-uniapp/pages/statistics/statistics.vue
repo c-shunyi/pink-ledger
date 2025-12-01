@@ -8,136 +8,169 @@
         :class="{ active: timeRange === 'month' }"
         @click="changeTimeRange('month')"
       >
-        本月
+        月
       </view>
       <view 
         class="time-tab"
         :class="{ active: timeRange === 'year' }"
         @click="changeTimeRange('year')"
       >
-        本年
+        年
       </view>
     </view>
 
-    <!-- 时间范围信息 -->
-    <view class="range-info">
-      <view class="range-dates">
-        <text class="range-label">{{ timeRange === 'month' ? '本月' : '本年' }}</text>
-        <text class="range-value">{{ currentRange.startDate }} ~ {{ currentRange.endDate }}</text>
-      </view>
-      <text class="range-days" v-if="rangeDays">共{{ rangeDays }}天</text>
-    </view>
-    
-    <!-- 总览卡片 -->
-    <view class="summary-card">
-      <view class="summary-item">
-        <text class="summary-label">总收入</text>
-        <text class="summary-value income">¥{{ formatAmount(summary.totalIncome) }}</text>
-      </view>
-      <view class="summary-divider"></view>
-      <view class="summary-item">
-        <text class="summary-label">总支出</text>
-        <text class="summary-value expense">¥{{ formatAmount(summary.totalExpense) }}</text>
-      </view>
-    </view>
-
-    <!-- 数据洞察 -->
-    <view class="insight-card">
+    <scroll-view 
+      class="content-scroll"
+      scroll-y
+      :show-scrollbar="false"
+    >
+      <!-- 时间范围信息 -->
       <view 
-        class="insight-item"
-        :class="{ clickable: item.clickable }"
-        v-for="item in insights"
-        :key="item.key"
-        @click="handleInsightClick(item)"
+        class="range-info"
+        @touchstart="handleRangeTouchStart"
+        @touchend="handleRangeTouchEnd"
+      >
+        <uni-icons 
+          class="range-arrow" 
+          type="left" 
+          size="22" 
+          color="#666"
+          @click.stop="changePeriod('prev')"
+        ></uni-icons>
+        <view class="range-center">
+          <view class="range-dates">
+            <text class="range-label">{{ rangeLabel }}</text>
+            <text class="range-value">{{ currentRange.startDate }} ~ {{ currentRange.endDate }}</text>
+          </view>
+          <!-- <text class="range-days" v-if="rangeDays">共{{ rangeDays }}天</text> -->
+        </view>
+        <uni-icons 
+          class="range-arrow" 
+          type="right" 
+          size="22" 
+          color="#666"
+          @click.stop="changePeriod('next')"
+        ></uni-icons>
+      </view>
+      
+      <!-- 总览卡片 -->
+      <view class="summary-card">
+        <view class="summary-item">
+          <text class="summary-label">总收入</text>
+          <text class="summary-value income">¥{{ formatAmount(summary.totalIncome) }}</text>
+        </view>
+        <view class="summary-divider"></view>
+        <view class="summary-item">
+          <text class="summary-label">总支出</text>
+          <text class="summary-value expense">¥{{ formatAmount(summary.totalExpense) }}</text>
+        </view>
+      </view>
+
+      <!-- 数据洞察 -->
+      <view class="insight-card">
+        <view 
+          class="insight-item"
+          :class="{ clickable: item.clickable }"
+          v-for="item in insights"
+          :key="item.key"
+          @click="handleInsightClick(item)"
       >
         <text class="insight-label">{{ item.label }}</text>
         <text class="insight-value" :class="item.type">{{ item.value }}</text>
         <text class="insight-desc">{{ item.desc }}</text>
+        <uni-icons 
+          v-if="item.clickable" 
+          class="insight-arrow" 
+          type="arrowright" 
+          size="20" 
+          color="rgba(0, 0, 0, 0.3)"
+        ></uni-icons>
       </view>
     </view>
-    
-    <!-- 分类统计 -->
-    <view class="category-stats">
-      <!-- 支出统计 -->
-      <view class="stats-section">
-        <view class="stats-header">
-          <text class="stats-title">支出分类</text>
-          <text class="stats-total">¥{{ formatAmount(summary.totalExpense) }}</text>
-        </view>
-        <view class="stats-list">
-          <view 
-            v-for="item in expenseStats" 
-            :key="item.categoryId"
-            class="stats-item"
-          >
-            <view class="stats-left">
-              <view class="stats-icon">
-                <image v-if="item.category.icon && item.category.icon.startsWith('/static/')" class="icon-img" :src="item.category.icon" mode="aspectFit"></image>
-                <text v-else class="icon-text">{{ item.category.icon }}</text>
-              </view>
-              <view class="stats-info">
-                <text class="stats-name">{{ item.category.name }}</text>
-                <text class="stats-count">{{ item.count }}笔</text>
-              </view>
-            </view>
-            <view class="stats-right">
-              <text class="stats-amount">¥{{ formatAmount(item.total) }}</text>
-              <text class="stats-percent">{{ getPercent(item.total, summary.totalExpense) }}%</text>
-            </view>
-            <view class="stats-bar">
-              <view 
-                class="stats-bar-fill expense"
-                :style="{ width: getPercent(item.total, summary.totalExpense) + '%' }"
-              ></view>
-            </view>
-          </view>
-          
-          <view v-if="expenseStats.length === 0" class="empty-stats">
-            <text>暂无支出记录</text>
-          </view>
-        </view>
-      </view>
       
-      <!-- 收入统计 -->
-      <view class="stats-section">
-        <view class="stats-header">
-          <text class="stats-title">收入分类</text>
-          <text class="stats-total income">¥{{ formatAmount(summary.totalIncome) }}</text>
-        </view>
-        <view class="stats-list">
-          <view 
-            v-for="item in incomeStats" 
-            :key="item.categoryId"
-            class="stats-item"
-          >
-            <view class="stats-left">
-              <view class="stats-icon">
-                <image v-if="item.category.icon && item.category.icon.startsWith('/static/')" class="icon-img" :src="item.category.icon" mode="aspectFit"></image>
-                <text v-else class="icon-text">{{ item.category.icon }}</text>
+      <!-- 分类统计 -->
+      <view class="category-stats">
+        <!-- 支出统计 -->
+        <view class="stats-section">
+          <view class="stats-header">
+            <text class="stats-title">支出分类</text>
+            <text class="stats-total">¥{{ formatAmount(summary.totalExpense) }}</text>
+          </view>
+          <view class="stats-list">
+            <view 
+              v-for="item in expenseStats" 
+              :key="item.categoryId"
+              class="stats-item"
+            >
+              <view class="stats-left">
+                <view class="stats-icon">
+                  <image v-if="item.category.icon && item.category.icon.startsWith('/static/')" class="icon-img" :src="item.category.icon" mode="aspectFit"></image>
+                  <text v-else class="icon-text">{{ item.category.icon }}</text>
+                </view>
+                <view class="stats-info">
+                  <text class="stats-name">{{ item.category.name }}</text>
+                  <text class="stats-count">{{ item.count }}笔</text>
+                </view>
               </view>
-              <view class="stats-info">
-                <text class="stats-name">{{ item.category.name }}</text>
-                <text class="stats-count">{{ item.count }}笔</text>
+              <view class="stats-right">
+                <text class="stats-amount">¥{{ formatAmount(item.total) }}</text>
+                <text class="stats-percent">{{ getPercent(item.total, summary.totalExpense) }}%</text>
+              </view>
+              <view class="stats-bar">
+                <view 
+                  class="stats-bar-fill expense"
+                  :style="{ width: getPercent(item.total, summary.totalExpense) + '%' }"
+                ></view>
               </view>
             </view>
-            <view class="stats-right">
-              <text class="stats-amount">¥{{ formatAmount(item.total) }}</text>
-              <text class="stats-percent">{{ getPercent(item.total, summary.totalIncome) }}%</text>
-            </view>
-            <view class="stats-bar">
-              <view 
-                class="stats-bar-fill income"
-                :style="{ width: getPercent(item.total, summary.totalIncome) + '%' }"
-              ></view>
+            
+            <view v-if="expenseStats.length === 0" class="empty-stats">
+              <text>暂无支出记录</text>
             </view>
           </view>
-          
-          <view v-if="incomeStats.length === 0" class="empty-stats">
-            <text>暂无收入记录</text>
+        </view>
+        
+        <!-- 收入统计 -->
+        <view class="stats-section">
+          <view class="stats-header">
+            <text class="stats-title">收入分类</text>
+            <text class="stats-total income">¥{{ formatAmount(summary.totalIncome) }}</text>
+          </view>
+          <view class="stats-list">
+            <view 
+              v-for="item in incomeStats" 
+              :key="item.categoryId"
+              class="stats-item"
+            >
+              <view class="stats-left">
+                <view class="stats-icon">
+                  <image v-if="item.category.icon && item.category.icon.startsWith('/static/')" class="icon-img" :src="item.category.icon" mode="aspectFit"></image>
+                  <text v-else class="icon-text">{{ item.category.icon }}</text>
+                </view>
+                <view class="stats-info">
+                  <text class="stats-name">{{ item.category.name }}</text>
+                  <text class="stats-count">{{ item.count }}笔</text>
+                </view>
+              </view>
+              <view class="stats-right">
+                <text class="stats-amount">¥{{ formatAmount(item.total) }}</text>
+                <text class="stats-percent">{{ getPercent(item.total, summary.totalIncome) }}%</text>
+              </view>
+              <view class="stats-bar">
+                <view 
+                  class="stats-bar-fill income"
+                  :style="{ width: getPercent(item.total, summary.totalIncome) + '%' }"
+                ></view>
+              </view>
+            </view>
+            
+            <view v-if="incomeStats.length === 0" class="empty-stats">
+              <text>暂无收入记录</text>
+            </view>
           </view>
         </view>
       </view>
-    </view>
+    </scroll-view>
   </view>
 </template>
 
@@ -145,7 +178,7 @@
 import { ref, reactive, computed } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 import { getStatistics } from '@/api'
-import { getMonthStart, getMonthEnd, getYearStart, getYearEnd } from '@/utils/date.js'
+import { formatDate, getSpecificMonthStart, getSpecificMonthEnd } from '@/utils/date.js'
 import { useTheme } from '@/composables/useTheme.js'
 
 // 响应式数据
@@ -156,9 +189,10 @@ const summary = reactive({
 })
 const categoryStats = ref([])
 const currentRange = reactive({
-  startDate: getMonthStart(),
-  endDate: getMonthEnd()
+  startDate: '',
+  endDate: ''
 })
+const activeDate = ref(new Date())
 
 // 计算属性：支出统计
 const expenseStats = computed(() => {
@@ -188,6 +222,16 @@ const timeSliderStyle = computed(() => {
 })
 
 // 日期跨度
+const rangeLabel = computed(() => {
+  const date = activeDate.value
+  if (!date) return ''
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  return timeRange.value === 'month'
+    ? `${year}年${month}月`
+    : `${year}年`
+})
+
 const rangeDays = computed(() => {
   if (!currentRange.startDate || !currentRange.endDate) return 0
   const start = new Date(currentRange.startDate)
@@ -198,19 +242,28 @@ const rangeDays = computed(() => {
 })
 
 // 获取日期参数
-const getDateParams = () => {
+const updateRangeByActiveDate = () => {
+  const date = activeDate.value
+  if (!date) return
+  const year = date.getFullYear()
+  const month = date.getMonth() + 1
   if (timeRange.value === 'month') {
-    return {
-      startDate: getMonthStart(),
-      endDate: getMonthEnd()
-    }
+    currentRange.startDate = getSpecificMonthStart(year, month)
+    currentRange.endDate = getSpecificMonthEnd(year, month)
   } else {
-    return {
-      startDate: getYearStart(),
-      endDate: getYearEnd()
-    }
+    currentRange.startDate = formatDate(new Date(year, 0, 1))
+    currentRange.endDate = formatDate(new Date(year, 11, 31))
   }
 }
+
+const getDateParams = () => {
+  return {
+    startDate: currentRange.startDate,
+    endDate: currentRange.endDate
+  }
+}
+
+updateRangeByActiveDate()
 
 // 加载数据
 const loadData = async () => {
@@ -233,6 +286,19 @@ const loadData = async () => {
 const changeTimeRange = (range) => {
   if (timeRange.value === range) return
   timeRange.value = range
+  updateRangeByActiveDate()
+  loadData()
+}
+
+const changePeriod = (direction) => {
+  const diff = direction === 'prev' ? -1 : 1
+  const current = activeDate.value ? new Date(activeDate.value) : new Date()
+  if (timeRange.value === 'month') {
+    activeDate.value = new Date(current.getFullYear(), current.getMonth() + diff, 1)
+  } else {
+    activeDate.value = new Date(current.getFullYear() + diff, current.getMonth(), 1)
+  }
+  updateRangeByActiveDate()
   loadData()
 }
 
@@ -247,6 +313,26 @@ const formatAmount = (value) => {
   return num.toFixed(2)
 }
 
+const touchStartX = ref(0)
+const touchStartY = ref(0)
+
+const handleRangeTouchStart = (event) => {
+  const touch = event.touches?.[0]
+  if (!touch) return
+  touchStartX.value = touch.clientX
+  touchStartY.value = touch.clientY
+}
+
+const handleRangeTouchEnd = (event) => {
+  const touch = event.changedTouches?.[0]
+  if (!touch) return
+  const deltaX = touch.clientX - touchStartX.value
+  const deltaY = touch.clientY - touchStartY.value
+  if (Math.abs(deltaX) > 40 && Math.abs(deltaX) > Math.abs(deltaY)) {
+    changePeriod(deltaX > 0 ? 'prev' : 'next')
+  }
+}
+
 const insights = computed(() => {
   const days = rangeDays.value
   const expenseTop = expenseStats.value[0]
@@ -258,6 +344,7 @@ const insights = computed(() => {
       key: 'top-expense',
       label: '最高支出',
       type: 'expense',
+      transactionType: 'expense',
       value: expenseTop ? `¥${formatAmount(expenseTop.total)}` : '--',
       desc: expenseTop 
         ? `${getCategoryName(expenseTop)} · ${getPercent(expenseTop.total, summary.totalExpense)}%`
@@ -268,6 +355,7 @@ const insights = computed(() => {
       key: 'top-income',
       label: '最高收入',
       type: 'income',
+      transactionType: 'income',
       value: incomeTop ? `¥${formatAmount(incomeTop.total)}` : '--',
       desc: incomeTop
         ? `${getCategoryName(incomeTop)} · ${getPercent(incomeTop.total, summary.totalIncome)}%`
@@ -294,10 +382,9 @@ const insights = computed(() => {
 })
 
 const handleInsightClick = (item) => {
-  if (!item.clickable) return
-  const type = item.key === 'top-expense' ? 'expense' : 'income'
+  if (!item.clickable || !item.transactionType) return
   const query = [
-    `type=${type}`,
+    `type=${item.transactionType}`,
     currentRange.startDate ? `startDate=${currentRange.startDate}` : '',
     currentRange.endDate ? `endDate=${currentRange.endDate}` : '',
     'limit=10'
@@ -321,8 +408,19 @@ onShow(() => {
 <style scoped>
 .container {
   min-height: 100vh;
+  height: 100vh;
   background: #F5F5F5;
   padding-bottom: 20rpx;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.content-scroll {
+  flex: 1;
+  overflow: hidden;
+  padding-bottom: 20rpx;
+  box-sizing: border-box;
 }
 
 /* 时间范围选择 */
@@ -330,7 +428,6 @@ onShow(() => {
   display: flex;
   background: #fff;
   padding: 20rpx;
-  margin-bottom: 20rpx;
   position: relative;
   border-radius: 20rpx;
   overflow: hidden;
@@ -368,15 +465,24 @@ onShow(() => {
   padding: 20rpx 30rpx;
   border-radius: 15rpx;
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 20rpx;
   font-size: 26rpx;
   color: #666;
+}
+
+.range-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
 }
 
 .range-dates {
   display: flex;
   flex-direction: column;
+  align-items: center;
 }
 
 .range-label {
@@ -394,6 +500,10 @@ onShow(() => {
 .range-days {
   font-size: 24rpx;
   color: #999;
+}
+
+.range-arrow {
+  padding: 10rpx;
 }
 
 /* 总览卡片 */
@@ -454,14 +564,23 @@ onShow(() => {
   padding: 24rpx;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
 .insight-item.clickable {
   border: 1px solid rgba(118, 75, 162, 0.2);
+  padding-right: 60rpx;
 }
 
 .insight-item.clickable:active {
   opacity: 0.8;
+}
+
+.insight-arrow {
+  position: absolute;
+  right: 24rpx;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .insight-label {
