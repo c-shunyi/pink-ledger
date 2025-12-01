@@ -333,21 +333,31 @@ exports.getStatistics = async (req, res) => {
     const categoryStats = await Transaction.findAll({
       where: whereClause,
       attributes: [
-        'Transaction.type',
-        'Transaction.categoryId',
-        [sequelize.fn('SUM', sequelize.col('amount')), 'total'],
+        [sequelize.col('Transaction.type'), 'type'],
+        [sequelize.col('Transaction.categoryId'), 'categoryId'],
+        [sequelize.fn('SUM', sequelize.col('Transaction.amount')), 'total'],
         [sequelize.fn('COUNT', sequelize.col('Transaction.id')), 'count']
       ],
       include: [
         {
           model: Category,
           as: 'category',
-          attributes: ['id', 'name', 'icon', 'color']
+          attributes: ['id', 'name', 'icon', 'color', 'type']
         }
       ],
       group: ['Transaction.type', 'Transaction.categoryId', 'category.id'],
-      order: [[sequelize.fn('SUM', sequelize.col('amount')), 'DESC']]
+      order: [[sequelize.fn('SUM', sequelize.col('Transaction.amount')), 'DESC']],
+      raw: true,
+      nest: true
     });
+
+    const formattedCategoryStats = categoryStats.map(item => ({
+      type: item.type || item['Transaction.type'] || item.category?.type || null,
+      categoryId: item.categoryId || item['Transaction.categoryId'],
+      total: parseFloat(item.total) || 0,
+      count: parseInt(item.count, 10) || 0,
+      category: item.category
+    }));
 
     // 格式化数据
     const totalIncome = summary.find(s => s.type === 'income')?.total || 0;
@@ -362,7 +372,7 @@ exports.getStatistics = async (req, res) => {
           totalExpense: parseFloat(totalExpense),
           balance: parseFloat(totalIncome) - parseFloat(totalExpense)
         },
-        categoryStats
+        categoryStats: formattedCategoryStats
       }
     });
   } catch (error) {
@@ -374,3 +384,62 @@ exports.getStatistics = async (req, res) => {
   }
 };
 
+// 获取高金额账单
+exports.getTopTransactions = async (req, res) => {
+  try {
+    const userId = req.userId;
+    let { type = 'expense', startDate, endDate, limit = 10 } = req.query;
+
+    if (!['income', 'expense'].includes(type)) {
+      return sendResponse(res, {
+        code: 400,
+        msg: '类型必须是 income 或 expense'
+      });
+    }
+
+    limit = Math.max(1, Math.min(parseInt(limit) || 10, 50));
+
+    const whereClause = { userId, type };
+
+    if (startDate && endDate) {
+      whereClause.date = {
+        [Op.between]: [startDate, endDate]
+      };
+    } else if (startDate) {
+      whereClause.date = {
+        [Op.gte]: startDate
+      };
+    } else if (endDate) {
+      whereClause.date = {
+        [Op.lte]: endDate
+      };
+    }
+
+    const topTransactions = await Transaction.findAll({
+      where: whereClause,
+      include: [
+        {
+          model: Category,
+          as: 'category',
+          attributes: ['id', 'name', 'type', 'icon', 'color']
+        }
+      ],
+      order: [['amount', 'DESC'], ['date', 'DESC'], ['createdAt', 'DESC']],
+      limit
+    });
+
+    return sendResponse(res, {
+      code: 200,
+      msg: '获取成功',
+      data: {
+        transactions: topTransactions
+      }
+    });
+  } catch (error) {
+    console.error('获取高金额账单失败:', error);
+    return sendResponse(res, {
+      code: 500,
+      msg: '获取高金额账单失败'
+    });
+  }
+};

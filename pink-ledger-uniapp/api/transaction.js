@@ -68,3 +68,15 @@ export const getStatistics = (params) => {
   return get('/transactions/statistics', params)
 }
 
+/**
+ * 获取高金额账单
+ * @param {Object} params
+ * @param {string} params.type - income/expense
+ * @param {string} params.startDate
+ * @param {string} params.endDate
+ * @param {number} params.limit
+ * @returns {Promise}
+ */
+export const getTopTransactions = (params) => {
+  return get('/transactions/top', params)
+}

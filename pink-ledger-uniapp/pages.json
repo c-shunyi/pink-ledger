@@ -32,6 +32,12 @@
       }
     },
     {
+      "path": "pages/statistics/top-list",
+      "style": {
+        "navigationBarTitleText": "高额账单"
+      }
+    },
+    {
       "path": "pages/profile/profile",
       "style": {
         "navigationBarTitleText": "我的"
@@ -86,12 +92,12 @@
         "iconPath": "static/tabbar/bill.png",
         "selectedIconPath": "static/tabbar/bill-active.png"
       },
-      // {
-      // 	"pagePath": "pages/statistics/statistics",
-      // 	"text": "统计",
-      // 	"iconPath": "static/tabbar/chart.png",
-      // 	"selectedIconPath": "static/tabbar/chart-active.png"
-      // },
+      {
+      	"pagePath": "pages/statistics/statistics",
+      	"text": "统计",
+      	"iconPath": "static/tabbar/chart.png",
+      	"selectedIconPath": "static/tabbar/chart-active.png"
+      },
       {
         "pagePath": "pages/profile/profile",
         "text": "我的",
