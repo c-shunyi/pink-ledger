@@ -11,7 +11,7 @@
           <text class="user-id">ID: {{ userInfo.id }}</text>
         </view>
       </view>
-      <button class="edit-profile-btn" @click="goToEditProfile">
+      <button v-if="isLoggedIn" class="edit-profile-btn" @click="goToEditProfile">
         编辑资料
       </button>
     </view>
@@ -37,8 +37,8 @@
 
     <!-- 退出登录 -->
     <view class="logout-section">
-      <button class="logout-btn" @click="handleLogout">
-        退出登录
+      <button class="logout-btn" @click="handleAuthAction">
+        {{ isLoggedIn ? '退出登录' : '去登录' }}
       </button>
     </view>
   </view>
@@ -47,7 +47,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
-import { getUserInfo, removeToken, removeUserInfo } from '@/utils/storage.js'
+import { getToken, getUserInfo, removeToken, removeUserInfo } from '@/utils/storage.js'
 import { useTheme } from '@/composables/useTheme.js'
 
 // 使用主题组合式函数
@@ -55,6 +55,7 @@ const { themeColors } = useTheme()
 
 // 响应式数据
 const userInfo = ref({})
+const isLoggedIn = ref(false)
 
 // 计算属性：用户名首字母
 const userInitial = computed(() => {
@@ -64,10 +65,11 @@ const userInitial = computed(() => {
 
 // 加载用户信息
 const loadUserInfo = () => {
+  const token = getToken()
   const info = getUserInfo()
-  if (info) {
-    userInfo.value = info
-  }
+  const loggedIn = !!token && !!info
+  isLoggedIn.value = loggedIn
+  userInfo.value = loggedIn ? info : {}
 }
 
 // 编辑资料
@@ -79,6 +81,14 @@ const goToEditProfile = () => {
 
 // 分类管理
 const goToCategory = () => {
+  if (!isLoggedIn.value) {
+    uni.showToast({
+      title: '请先登录',
+      icon: 'none'
+    })
+    return
+  }
+
   uni.navigateTo({
     url: '/pages/category/category'
   })
@@ -94,7 +104,14 @@ const showAbout = () => {
 }
 
 // 退出登录
-const handleLogout = () => {
+const handleAuthAction = () => {
+  if (!isLoggedIn.value) {
+    uni.navigateTo({
+      url: '/pages/login/login'
+    })
+    return
+  }
+
   uni.showModal({
     title: '退出登录',
     content: '确定要退出登录吗？',

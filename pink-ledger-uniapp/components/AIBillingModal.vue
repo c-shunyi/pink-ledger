@@ -1,6 +1,6 @@
 <template>
   <view v-if="visible" class="ai-modal" @click="handleMaskClick">
-    <view class="modal-card" @click.stop>
+    <view class="modal-card" :style="cardStyle" @click.stop>
       <view class="modal-header">
         <text class="modal-title">AI 智能记账</text>
         <view class="close-btn" @click="handleClose">
@@ -9,10 +9,6 @@
       </view>
 
       <view class="modal-body">
-        <view class="tips">
-          <text class="tips-text">试试说：今天早餐花了25元，打车回家40元</text>
-        </view>
-
         <textarea
           class="input-area"
           v-model="inputText"
@@ -20,15 +16,11 @@
           :maxlength="500"
           :auto-height="true"
           :focus="autoFocus"
+          :adjust-position="!manualAdjust"
         />
-
-        <view class="char-count">
-          <text>{{ inputText.length }}/500</text>
-        </view>
       </view>
 
       <view class="modal-footer">
-        <button class="cancel-btn" @click="handleClose">取消</button>
         <button
           class="submit-btn"
           @click="handleSubmit"
@@ -43,7 +35,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, computed, onMounted, onUnmounted } from 'vue'
 
 const props = defineProps({
   visible: {
@@ -57,6 +49,18 @@ const emit = defineEmits(['close', 'submit'])
 const inputText = ref('')
 const loading = ref(false)
 const autoFocus = ref(false)
+const keyboardHeight = ref(0)
+const manualAdjust = ref(false)
+
+const cardStyle = computed(() => {
+  if (!manualAdjust.value || keyboardHeight.value <= 0) {
+    return {}
+  }
+
+  return {
+    bottom: `${keyboardHeight.value}px`
+  }
+})
 
 watch(() => props.visible, (isVisible) => {
   if (isVisible) {
@@ -64,6 +68,24 @@ watch(() => props.visible, (isVisible) => {
     autoFocus.value = true
   } else {
     autoFocus.value = false
+    keyboardHeight.value = 0
+  }
+})
+
+const handleKeyboardChange = (res) => {
+  keyboardHeight.value = res?.height || 0
+}
+
+onMounted(() => {
+  if (typeof uni?.onKeyboardHeightChange === 'function') {
+    manualAdjust.value = true
+    uni.onKeyboardHeightChange(handleKeyboardChange)
+  }
+})
+
+onUnmounted(() => {
+  if (typeof uni?.offKeyboardHeightChange === 'function') {
+    uni.offKeyboardHeightChange(handleKeyboardChange)
   }
 })
 
@@ -98,21 +120,23 @@ const handleSubmit = () => {
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.45);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 40rpx;
   z-index: 1000;
 }
 
 .modal-card {
-  width: 100%;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 40rpx;
+  width: calc(100% - 80rpx);
   max-width: 600rpx;
+  margin: 0 auto;
   background: #fff;
   border-radius: 24rpx;
   overflow: hidden;
   box-shadow: 0 20rpx 60rpx rgba(0, 0, 0, 0.2);
   animation: slideUp 0.25s ease-out;
+  transition: bottom 0.2s ease;
 }
 
 @keyframes slideUp {
@@ -175,11 +199,12 @@ const handleSubmit = () => {
 
 .input-area {
   width: 100%;
-  min-height: 220rpx;
-  padding: 20rpx;
-  background: #fafafa;
-  border-radius: 16rpx;
-  font-size: 30rpx;
+  min-height: 160rpx;
+  padding: 16rpx;
+  background: #fff;
+  border-radius: 14rpx;
+  border: 1px solid #ececec;
+  font-size: 28rpx;
   color: #333;
   line-height: 1.6;
   box-sizing: border-box;
@@ -196,14 +221,12 @@ const handleSubmit = () => {
 }
 
 .modal-footer {
-  display: flex;
-  gap: 20rpx;
-  padding: 28rpx 32rpx 32rpx;
+  padding: 24rpx 32rpx 32rpx;
   border-top: 1px solid #f0f0f0;
 }
 
 .modal-footer button {
-  flex: 1;
+  width: 100%;
   height: 80rpx;
   border-radius: 16rpx;
   font-size: 30rpx;
@@ -212,11 +235,6 @@ const handleSubmit = () => {
 
 .modal-footer button::after {
   border: none;
-}
-
-.cancel-btn {
-  background: #f5f5f5;
-  color: #666;
 }
 
 .submit-btn {

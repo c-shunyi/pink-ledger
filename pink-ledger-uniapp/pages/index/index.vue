@@ -171,14 +171,15 @@ import { parseSmartBilling, createTransaction } from '@/api'
 import AIBillingModal from '@/components/AIBillingModal.vue'
 
 // 使用组合式函数
-const { isLoggedIn } = useAuth()
+const { checkAuthStatus } = useAuth()
 const {
   groupedTransactions,
   summary,
   loading,
   hasMore,
   refreshData,
-  loadMore: loadMoreTransactions
+  loadMore: loadMoreTransactions,
+  reset
 } = useTransactions()
 const { themeColors } = useTheme()
 
@@ -288,6 +289,12 @@ const updateMonthList = (selectedYear) => {
 
 // 加载数据（根据筛选条件）
 const loadData = async () => {
+  if (!checkAuthStatus()) {
+    reset()
+    refreshing.value = false
+    return
+  }
+
   const params = {
     year: currentYear.value,
     month: currentMonthNum.value
@@ -306,7 +313,28 @@ const loadData = async () => {
   }
 }
 
+const promptLogin = () => {
+  uni.showModal({
+    title: '提示',
+    content: '请先登录后再使用该功能',
+    confirmText: '去登录',
+    cancelText: '取消',
+    success: (res) => {
+      if (res.confirm) {
+        uni.navigateTo({
+          url: '/pages/login/login'
+        })
+      }
+    }
+  })
+}
+
 const showAIModal = () => {
+  if (!checkAuthStatus()) {
+    promptLogin()
+    return
+  }
+
   aiModalVisible.value = true
 }
 
@@ -314,6 +342,12 @@ const handleAISubmit = async (text, setLoading) => {
   setLoading(true)
 
   try {
+    if (!checkAuthStatus()) {
+      setLoading(false)
+      promptLogin()
+      return
+    }
+
     const parseRes = await parseSmartBilling(text)
     const bills = parseRes.data?.bills || []
 
@@ -371,6 +405,10 @@ const onRefresh = () => {
 
 // 加载更多
 const loadMore = () => {
+  if (!checkAuthStatus()) {
+    return
+  }
+
   const params = {
     year: currentYear.value,
     month: currentMonthNum.value
@@ -404,6 +442,11 @@ const changeFilter = (type) => {
 
 // 跳转到添加页面
 const goToAdd = () => {
+  if (!checkAuthStatus()) {
+    promptLogin()
+    return
+  }
+
   uni.navigateTo({
     url: '/pages/transaction/add'
   })
@@ -529,23 +572,13 @@ watch(showDatePicker, (newVal) => {
 
 // 生命周期钩子
 onLoad(() => {
-  // 检查登录状态
-  if (!isLoggedIn.value) {
-    uni.reLaunch({
-      url: '/pages/login/login'
-    })
-    return
-  }
-  
   initCurrentMonth()
   loadData()
 })
 
 onShow(() => {
   // 每次显示页面时刷新数据
-  if (isLoggedIn.value) {
-    loadData()
-  }
+  loadData()
 })
 </script>
 
