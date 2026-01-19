@@ -144,9 +144,20 @@
     </view>
     
     <!-- 添加按钮 -->
-    <view class="add-btn" @click="goToAdd">
-      <uni-icons type="plusempty" size="26" color="#fff"></uni-icons>
+    <view class="float-actions">
+      <view class="ai-btn" @click="showAIModal">
+        <text class="ai-btn-text">AI 记账</text>
+      </view>
+      <view class="add-btn" @click="goToAdd">
+        <uni-icons type="plusempty" size="26" color="#fff"></uni-icons>
+      </view>
     </view>
+
+    <AIBillingModal
+      :visible="aiModalVisible"
+      @close="aiModalVisible = false"
+      @submit="handleAISubmit"
+    />
   </view>
 </template>
 
@@ -156,6 +167,8 @@ import { onLoad, onShow } from '@dcloudio/uni-app'
 import { useAuth } from '@/composables/useAuth.js'
 import { useTransactions } from '@/composables/useTransactions.js'
 import { useTheme } from '@/composables/useTheme.js'
+import { parseSmartBilling, createTransaction } from '@/api'
+import AIBillingModal from '@/components/AIBillingModal.vue'
 
 // 使用组合式函数
 const { isLoggedIn } = useAuth()
@@ -175,6 +188,7 @@ const currentMonth = ref('')
 const currentYear = ref('')
 const currentMonthNum = ref('')
 const refreshing = ref(false)
+const aiModalVisible = ref(false)
 
 // 日期选择相关
 const showDatePicker = ref(false)
@@ -289,6 +303,63 @@ const loadData = async () => {
     console.error('加载数据失败:', err)
   } finally {
     refreshing.value = false
+  }
+}
+
+const showAIModal = () => {
+  aiModalVisible.value = true
+}
+
+const handleAISubmit = async (text, setLoading) => {
+  setLoading(true)
+
+  try {
+    const parseRes = await parseSmartBilling(text)
+    const bills = parseRes.data?.bills || []
+
+    if (bills.length === 0) {
+      uni.showToast({
+        title: parseRes.msg || 'AI 未能识别账单',
+        icon: 'none'
+      })
+      return
+    }
+
+    const createPromises = bills.map((bill) => {
+      return createTransaction({
+        categoryId: bill.categoryId,
+        type: bill.type,
+        amount: bill.amount,
+        date: bill.date,
+        description: bill.description
+      })
+    })
+
+    const results = await Promise.allSettled(createPromises)
+    const successCount = results.filter((result) => result.status === 'fulfilled').length
+    const failCount = results.length - successCount
+
+    if (successCount > 0) {
+      aiModalVisible.value = false
+      uni.showToast({
+        title: `成功创建 ${successCount} 笔账单${failCount > 0 ? `，${failCount} 笔失败` : ''}`,
+        icon: 'success'
+      })
+      await loadData()
+    } else {
+      uni.showToast({
+        title: '创建账单失败',
+        icon: 'none'
+      })
+    }
+  } catch (error) {
+    console.error('AI 记账失败:', error)
+    uni.showToast({
+      title: '操作失败，请重试',
+      icon: 'none'
+    })
+  } finally {
+    setLoading(false)
   }
 }
 
@@ -881,11 +952,40 @@ onShow(() => {
   color: #999;
 }
 
-/* 添加按钮 */
-.add-btn {
+/* 悬浮操作区 */
+.float-actions {
   position: fixed;
   right: 40rpx;
   bottom: 120rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  z-index: 999;
+}
+
+.ai-btn {
+  height: 72rpx;
+  padding: 0 24rpx;
+  border-radius: 36rpx;
+  background: v-bind('themeColors.gradientReverse');
+  box-shadow: 0 8rpx 24rpx v-bind('themeColors.shadow');
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.ai-btn-text {
+  font-size: 26rpx;
+  color: #fff;
+  font-weight: 500;
+}
+
+/* 添加按钮 */
+.add-btn {
   width: 120rpx;
   height: 120rpx;
   background: v-bind('themeColors.gradient');

@@ -10,3 +10,6 @@ export * from './category.js'
 // 账单管理相关
 export * from './transaction.js'
 
+// AI 智能记账相关
+export * from './ai.js'
+

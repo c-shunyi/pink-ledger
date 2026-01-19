@@ -4,6 +4,7 @@ const router = express.Router();
 const authRoutes = require('./auth');
 const categoryRoutes = require('./categories');
 const transactionRoutes = require('./transactions');
+const aiRoutes = require('./ai');
 
 // 健康检查
 router.get('/health', (req, res) => {
@@ -18,6 +19,7 @@ router.get('/health', (req, res) => {
 router.use('/auth', authRoutes);
 router.use('/categories', categoryRoutes);
 router.use('/transactions', transactionRoutes);
+router.use('/ai', aiRoutes);
 
 module.exports = router;
 
