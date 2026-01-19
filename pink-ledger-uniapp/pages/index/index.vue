@@ -158,6 +158,22 @@
       @close="aiModalVisible = false"
       @submit="handleAISubmit"
     />
+
+    <view v-if="aiParsing" class="ai-loading-mask">
+      <view class="ai-loading-card">
+        <view class="ai-loading-title">
+          <text
+            v-for="(char, index) in aiLoadingChars"
+            :key="`ai-${index}`"
+            class="ai-loading-char"
+            :style="{ animationDelay: `${index * 0.08}s` }"
+          >
+            {{ char }}
+          </text>
+        </view>
+        <text class="ai-loading-subtitle">AI 正在解析，请稍候</text>
+      </view>
+    </view>
   </view>
 </template>
 
@@ -190,6 +206,8 @@ const currentYear = ref('')
 const currentMonthNum = ref('')
 const refreshing = ref(false)
 const aiModalVisible = ref(false)
+const aiParsing = ref(false)
+const aiLoadingChars = ['A', 'I', '解', '析', '中']
 
 // 日期选择相关
 const showDatePicker = ref(false)
@@ -340,14 +358,17 @@ const showAIModal = () => {
 
 const handleAISubmit = async (text, setLoading) => {
   setLoading(true)
+  aiModalVisible.value = false
+
+  if (!checkAuthStatus()) {
+    setLoading(false)
+    promptLogin()
+    return
+  }
+
+  aiParsing.value = true
 
   try {
-    if (!checkAuthStatus()) {
-      setLoading(false)
-      promptLogin()
-      return
-    }
-
     const parseRes = await parseSmartBilling(text)
     const bills = parseRes.data?.bills || []
 
@@ -374,7 +395,6 @@ const handleAISubmit = async (text, setLoading) => {
     const failCount = results.length - successCount
 
     if (successCount > 0) {
-      aiModalVisible.value = false
       uni.showToast({
         title: `成功创建 ${successCount} 笔账单${failCount > 0 ? `，${failCount} 笔失败` : ''}`,
         icon: 'success'
@@ -394,6 +414,7 @@ const handleAISubmit = async (text, setLoading) => {
     })
   } finally {
     setLoading(false)
+    aiParsing.value = false
   }
 }
 
@@ -983,6 +1004,62 @@ onShow(() => {
   padding: 40rpx 0;
   font-size: 26rpx;
   color: #999;
+}
+
+/* AI 解析遮罩 */
+.ai-loading-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+}
+
+.ai-loading-card {
+  width: 520rpx;
+  padding: 40rpx 32rpx;
+  background: #fff;
+  border-radius: 24rpx;
+  box-shadow: 0 20rpx 60rpx rgba(0, 0, 0, 0.25);
+  text-align: center;
+}
+
+.ai-loading-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  margin-bottom: 12rpx;
+}
+
+.ai-loading-char {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #333;
+  display: inline-block;
+  animation: aiWave 1.1s ease-in-out infinite;
+}
+
+.ai-loading-subtitle {
+  font-size: 24rpx;
+  color: #666;
+}
+
+@keyframes aiWave {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translateY(-10rpx);
+    opacity: 1;
+  }
 }
 
 /* 悬浮操作区 */
