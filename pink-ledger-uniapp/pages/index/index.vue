@@ -171,7 +171,6 @@
             {{ char }}
           </text>
         </view>
-        <text class="ai-loading-subtitle">AI 正在解析，请稍候</text>
       </view>
     </view>
   </view>
