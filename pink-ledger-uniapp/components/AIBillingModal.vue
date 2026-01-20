@@ -1,5 +1,5 @@
 <template>
-  <view v-if="visible" class="ai-modal" @click="handleMaskClick">
+  <view v-show="visible" class="ai-modal" @click="handleMaskClick">
     <view class="modal-card" :style="cardStyle" @click.stop>
       <view class="modal-header">
         <text class="modal-title">AI 智能记账</text>
