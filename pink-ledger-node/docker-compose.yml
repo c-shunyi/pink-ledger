@@ -14,7 +14,7 @@ services:
     ports:
       - "${PORT:-8860}:${PORT:-8860}"
     volumes:
-      - ./data:/app/data
+      - /Users/shunyi/Documents/project-data/pink-ledger-node:/app/data
     healthcheck:
       test:
         [
