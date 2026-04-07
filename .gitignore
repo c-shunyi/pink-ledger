@@ -50,6 +50,7 @@ jspm_packages/
 *.sqlite3
 *.db
 database.sqlite
+pink-ledger-node/data/
 
 # MacOS
 .DS_Store

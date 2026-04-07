@@ -100,14 +100,56 @@ pnpm run dev
 pnpm start
 ```
 
-服务将在 `http://localhost:3000` 启动。
+服务将在 `http://localhost:8860` 启动。
+
+### 5. 使用 OrbStack / Docker Compose 本地部署
+
+如果你希望 `pink-ledger-node` 直接跑在 OrbStack 里，可以在后端目录执行：
+
+```bash
+# 进入后端目录
+cd pink-ledger-node
+
+# 首次使用时准备环境变量
+cp .env.example .env
+
+# 构建并后台启动
+pnpm run docker:up
+```
+
+容器启动时会自动执行 `node scripts/init-database.js`：
+- 如果数据库不存在，会自动创建表结构并初始化系统分类
+- 如果数据库已存在，会跳过初始化，直接启动服务
+
+本地访问地址：
+
+```text
+http://localhost:8860/api
+http://localhost:8860/api/health
+```
+
+数据库会持久化到项目目录下的 `./data/database.sqlite`，重启容器不会丢失数据。
+
+常用命令：
+
+```bash
+# 查看日志
+pnpm run docker:logs
+
+# 停止容器
+pnpm run docker:down
+
+# 删除本地容器并重新创建（保留 data 目录）
+pnpm run docker:down
+pnpm run docker:up
+```
 
 ## API 文档
 
 ### 基础路径
 
 ```
-http://localhost:3000/api
+http://localhost:8860/api
 ```
 
 ### 认证相关
@@ -393,6 +435,7 @@ node scripts/migrate-add-wechat-fields.js
 1. **首次运行必须先执行数据库初始化脚本** `node scripts/init-database.js`
    - 脚本会检查数据库是否已存在
    - 如已存在会自动停止，避免误操作
+   - 如果使用 `docker compose` / OrbStack，本步骤会在容器启动时自动完成
 2. **如需添加微信登录功能到现有数据库**，请运行 `node scripts/migrate-add-wechat-fields.js`
 3. 请在生产环境中修改 `JWT_SECRET` 为安全的密钥
 4. 微信登录需要配置 `WECHAT_APPID` 和 `WECHAT_APP_SECRET` 环境变量
@@ -400,6 +443,8 @@ node scripts/migrate-add-wechat-fields.js
 6. 删除分类前需确保没有关联的账单记录
 7. 所有接口（除注册、登录和微信登录）都需要 JWT 认证
 8. SQLite 数据库文件位置由 `DB_PATH` 环境变量指定
+   - 本机运行默认是 `./database.sqlite`
+   - OrbStack / Docker Compose 默认是 `./data/database.sqlite`
 
 ## 开发建议
 
@@ -411,4 +456,3 @@ node scripts/migrate-add-wechat-fields.js
 ## License
 
 ISC
-

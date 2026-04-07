@@ -1,0 +1,29 @@
+services:
+  pink-ledger-node:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pink-ledger-node
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      PORT: ${PORT:-8860}
+      DB_PATH: /app/data/database.sqlite
+    ports:
+      - "${PORT:-8860}:${PORT:-8860}"
+    volumes:
+      - ./data:/app/data
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "const port = process.env.PORT || 8860; fetch('http://127.0.0.1:' + port + '/api/health').then((res) => process.exit(res.ok ? 0 : 1)).catch(() => process.exit(1));"
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s

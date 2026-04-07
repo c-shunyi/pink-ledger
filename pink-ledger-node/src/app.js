@@ -9,6 +9,7 @@ const { errorHandler, notFoundHandler } = require('./middlewares/errorHandler');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const isAutoInitDatabaseEnabled = process.env.AUTO_INIT_DATABASE === 'true';
 
 // 中间件配置
 app.use(cors()); // 跨域支持
@@ -38,6 +39,13 @@ const startServer = async () => {
 
     // 启动服务器
     app.listen(PORT, () => {
+      const databaseInitHint = isAutoInitDatabaseEnabled
+        ? '容器启动时已自动检查数据库初始化'
+        : '首次运行请先执行数据库初始化脚本';
+      const databaseInitCommand = isAutoInitDatabaseEnabled
+        ? '已自动执行: node scripts/init-database.js'
+        : '命令: node scripts/init-database.js';
+
       console.log(`
 ╔═══════════════════════════════════════════════════════╗
 ║                                                       ║
@@ -47,8 +55,8 @@ const startServer = async () => {
 ║   🌍 Environment: ${process.env.NODE_ENV || 'development'}            ║
 ║   📚 API Documentation: http://localhost:${PORT}/api/health  ║
 ║                                                       ║
-║   ⚠️  提示: 首次运行请先执行数据库初始化脚本        ║
-║      命令: node scripts/init-database.js             ║
+║   ⚠️  提示: ${databaseInitHint}        ║
+║      ${databaseInitCommand}             ║
 ║                                                       ║
 ╚═══════════════════════════════════════════════════════╝
       `);
@@ -74,4 +82,3 @@ process.on('uncaughtException', (error) => {
 startServer();
 
 module.exports = app;
-

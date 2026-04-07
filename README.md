@@ -78,7 +78,17 @@ node scripts/init-database.js
 pnpm run dev
 ```
 
-后端服务将在 `http://localhost:3000` 启动。
+后端服务将在 `http://localhost:8860` 启动。
+
+如果你希望后端在 OrbStack 中本地部署，也可以直接运行：
+
+```bash
+cd pink-ledger-node
+cp .env.example .env
+pnpm run docker:up
+```
+
+容器启动后会自动初始化 SQLite 数据库，数据文件持久化在 `pink-ledger-node/data/database.sqlite`。
 
 **关于数据库初始化：**
 - 🔒 脚本会自动检测数据库是否已存在
@@ -95,8 +105,8 @@ pnpm run dev
 
 ```javascript
 export default {
-  baseUrl: 'http://localhost:3000/api',  // 开发环境
-  // baseUrl: 'http://你的服务器IP:3000/api',  // 生产环境
+  baseUrl: 'http://localhost:8860/api',  // 开发环境
+  // baseUrl: 'http://你的服务器IP:8860/api',  // 生产环境
 }
 ```
 
@@ -196,13 +206,13 @@ export default {
 **A:** 
 1. 确保手机和电脑在同一局域网
 2. 将前端配置中的 `localhost` 改为电脑的局域网 IP
-3. 例如：`http://192.168.1.100:3000/api`
+3. 例如：`http://192.168.1.100:8860/api`
 
 ### Q: 如何添加 TabBar 图标？
 **A:** 参考 [TabBar 图标说明](pink-ledger-uniapp/static/tabbar/README.md)
 
 ### Q: 如何备份数据？
-**A:** 备份 `pink-ledger-node/database.sqlite` 文件即可。
+**A:** 本机运行时备份 `pink-ledger-node/database.sqlite`；使用 OrbStack / Docker Compose 时备份 `pink-ledger-node/data/database.sqlite`。
 
 ## 数据安全
 
@@ -237,4 +247,3 @@ ISC License
 ---
 
 **💝 如果这个项目对你有帮助，欢迎 Star ⭐️**
-

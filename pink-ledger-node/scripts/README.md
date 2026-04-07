@@ -24,6 +24,8 @@
 
 ## 🚀 使用方法
 
+如果你使用 OrbStack / Docker Compose 启动服务，容器入口脚本会自动执行 `node scripts/init-database.js`，通常不需要再手动初始化。此时数据库默认位于 `./data/database.sqlite`。
+
 ### 首次初始化数据库
 
 ```bash
@@ -178,4 +180,3 @@ NODE_ENV=development
 - 项目主 README 文档
 - 检查日志输出中的错误信息
 - 确认 Node.js 版本 >= 14.0.0
-
